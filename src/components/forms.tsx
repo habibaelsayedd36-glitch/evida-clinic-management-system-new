@@ -349,8 +349,14 @@ export function AppointmentForm({
       price: form.price ? Number(form.price) : null,
     };
     const done = initial
-      ? await run(() => api("PATCH", `/api/appointments/${initial.id}`, payload), "Appointment updated")
-      : await run(() => api("POST", "/api/appointments", payload), "Appointment booked");
+      ? await run(
+          () => api("PATCH", `/api/appointments/${initial.id}`, payload),
+          lockClientId ? "Reschedule request sent to your doctor" : "New time sent to the client for confirmation",
+        )
+      : await run(
+          () => api("POST", "/api/appointments", payload),
+          lockClientId ? "Appointment request sent to your doctor" : "Appointment booked",
+        );
     if (done) onClose();
   }
 
@@ -358,15 +364,15 @@ export function AppointmentForm({
     <Modal
       open={open}
       onClose={onClose}
-      title={initial ? "Edit appointment" : "Book a new appointment"}
-      subtitle="Saved to the database and both sides get a notification"
+      title={initial ? (lockClientId ? "Request a new appointment time" : "Suggest a new appointment time") : "Book a new appointment"}
+      subtitle={initial ? "The other side must confirm the proposed time before it is final" : "Saved to the database and both sides get a notification"}
       footer={
         <>
           <Button variant="ghost" onClick={onClose} type="button">
             Cancel
           </Button>
           <Button onClick={submit} loading={busy} icon={<CalendarPlus className="h-4 w-4" />} type="button">
-            {initial ? "Save changes" : "Confirm booking"}
+            {initial ? (lockClientId ? "Request reschedule" : "Send new time for confirmation") : "Confirm booking"}
           </Button>
         </>
       }
