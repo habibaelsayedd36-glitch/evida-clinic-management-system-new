@@ -1231,6 +1231,7 @@ export function AppointmentRow({
   onConfirm,
   onNotConfirm,
   onReschedule,
+  onClientReschedule,
   onDelete,
 }: {
   appt: AppointmentDTO;
@@ -1243,6 +1244,7 @@ export function AppointmentRow({
   onConfirm?: () => void;
   onNotConfirm?: () => void;
   onReschedule?: () => void;
+  onClientReschedule?: () => void;
   onDelete?: () => void;
 }) {
   const past = new Date(appt.scheduledAt).getTime() < Date.now();
@@ -1283,6 +1285,11 @@ export function AppointmentRow({
             ) : null}
             {appt.status === "pending_doctor" && onReschedule ? (
               <Button size="sm" variant="soft" onClick={onReschedule} type="button">
+                Request reschedule
+              </Button>
+            ) : null}
+            {onClientReschedule && ["scheduled", "pending_client", "not_confirmed"].includes(appt.status) ? (
+              <Button size="sm" variant="soft" onClick={onClientReschedule} type="button">
                 Request reschedule
               </Button>
             ) : null}
