@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import PwaRegister from "./pwa-register";
+import PwaInstallGuide from "./pwa-install-guide";
 
 export const metadata: Metadata = {
   title: "EVIDA | Clinic Management System",
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           rel="stylesheet"
         />
       </head>
-      <body className="bg-sand-50 text-ink antialiased"><PwaRegister />{children}</body>
+      <body className="bg-sand-50 text-ink antialiased"><PwaRegister />{children}<PwaInstallGuide /></body>
     </html>
   );
 }
