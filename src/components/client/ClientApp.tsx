@@ -16,6 +16,7 @@ import {
   UtensilsCrossed,
   Check,
   Scale,
+  MessageCircle,
 } from "lucide-react";
 import { api, bmi, bmiLabel, fmtDate, fmtDateTime, fmtRelative, fmtTime, isSameDay, useBootstrap } from "@/lib/client";
 import { TIME_LABELS, type AppointmentDTO, type Bootstrap } from "@/lib/types";
@@ -160,6 +161,34 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                     </Button>
                   )}
                 </div>
+              </div>
+            </Card>
+
+            <Card>
+              <SectionHeader title="EVIDA Nutrition & Weight Management" subtitle="Clinic service prices — all plans require assessment by the treating doctor" icon={<Salad className="h-4 w-4" />} />
+              <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+                {[
+                  { name: "Normal Diet", detail: "Customized clinical nutrition plan with InBody assessment", price: "500 EGP", old: "1,000 EGP" },
+                  { name: "UNCUT – Semaglutide", detail: "10 Units: 1,500 EGP · 500 Units package: 20,000 EGP", price: "1,500 EGP", old: "2,000 EGP" },
+                  { name: "PROCUT – Tirzepatide", detail: "10 Units: 2,500 EGP · 200 Units package: 30,000 EGP", price: "2,500 EGP", old: "3,000 EGP" },
+                  { name: "PROCUT PREMIUM – Retatrutide", detail: "10 Units: 3,000 EGP · 200 Units package: 35,000 EGP", price: "3,000 EGP", old: "3,500 EGP" },
+                  { name: "Mesoline – Body slimming", detail: "Number of sessions is decided by the doctor after consultation", price: "3,500 EGP", old: "4,000 EGP" },
+                ].map((service) => (
+                  <div key={service.name} className="rounded-xl border border-ink/8 bg-white p-3.5">
+                    <p className="text-[13px] font-semibold text-ink">{service.name}</p>
+                    <p className="mt-1 text-[11px] leading-5 text-ink/60">{service.detail}</p>
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="num text-sm font-bold text-iris-700">{service.price}</span>
+                      <span className="num text-[11px] text-ink/40 line-through">{service.old}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="px-5 pb-4">
+                <a href="https://wa.me/201000115502" target="_blank" rel="noreferrer" className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-95">
+                  <MessageCircle className="h-4 w-4" /> Chat with EVIDA on WhatsApp
+                </a>
+                <p className="mt-2 text-[10px] leading-4 text-ink/45">Medication options and dosing are subject to medical evaluation and prescription. Prices and offers may be updated by the clinic.</p>
               </div>
             </Card>
 
