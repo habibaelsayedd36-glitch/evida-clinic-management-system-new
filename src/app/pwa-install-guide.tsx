@@ -13,11 +13,11 @@ export default function PwaInstallGuide() {
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsSafari(/Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua));
-    setShow(ios && !standalone && window.localStorage.getItem("evida-install-guide-dismissed") !== "1");
+    setShow(ios && !standalone && window.sessionStorage.getItem("evida-install-guide-dismissed") !== "1");
   }, []);
 
   function closeGuide() {
-    window.localStorage.setItem("evida-install-guide-dismissed", "1");
+    window.sessionStorage.setItem("evida-install-guide-dismissed", "1");
     setShow(false);
   }
 
