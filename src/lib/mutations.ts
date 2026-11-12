@@ -469,7 +469,10 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
         : `Status changed to ${action}`,
   });
 
-  const recipients = user.role === "client" ? [appt.doctorId, ...(await staffIds("admin"))] : [appt.clientId];
+  const becameConfirmed = action === "scheduled" && appt.status !== "scheduled";
+  const recipients = becameConfirmed
+    ? [appt.clientId, appt.doctorId, ...(await staffIds("admin"))]
+    : user.role === "client" ? [appt.doctorId, ...(await staffIds("admin"))] : [appt.clientId];
   await notify(recipients, {
     title:
       action === "cancelled" ? "Appointment cancelled" :
