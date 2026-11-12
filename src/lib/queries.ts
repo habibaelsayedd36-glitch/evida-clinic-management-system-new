@@ -161,6 +161,36 @@ export async function loadScopedData(user: ProfileDTO): Promise<Bootstrap> {
     .where(apptWhere)
     .orderBy(desc(appointments.scheduledAt));
 
+  /* ---------------- invoices & installment payments ---------------- */
+  const invoiceRows = await db
+    .select({
+      id: invoices.id,
+      invoiceNumber: invoices.invoiceNumber,
+      appointmentId: invoices.appointmentId,
+      clientId: invoices.clientId,
+      doctorId: invoices.doctorId,
+      totalAmount: invoices.totalAmount,
+      createdAt: invoices.createdAt,
+      clientName: clientP.fullName,
+      doctorName: doctorP.fullName,
+      appointmentKind: appointments.kind,
+    })
+    .from(invoices)
+    .leftJoin(clientP, eq(clientP.id, invoices.clientId))
+    .leftJoin(doctorP, eq(doctorP.id, invoices.doctorId))
+    .leftJoin(appointments, eq(appointments.id, invoices.appointmentId))
+    .where(user.role === "admin" ? undefined : scopeOn(invoices.clientId, scope))
+    .orderBy(desc(invoices.createdAt));
+
+  const paymentRows = invoiceRows.length
+    ? await db.select().from(invoicePayments).where(inArray(invoicePayments.invoiceId, invoiceRows.map((row) => row.id))).orderBy(desc(invoicePayments.paidAt))
+    : [];
+  const invoiceList = invoiceRows.map((row) => {
+    const payments = paymentRows.filter((payment) => payment.invoiceId === row.id).map((payment) => ({ ...payment, paidAt: iso(payment.paidAt) }));
+    const paidAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    return { ...row, createdAt: iso(row.createdAt), payments, paidAmount, remainingAmount: Math.max(0, row.totalAmount - paidAmount), status: paidAmount <= 0 ? "unpaid" as const : paidAmount >= row.totalAmount ? "paid" as const : "partially_paid" as const };
+  });
+
   /* ---------------- history ---------------- */
   const historyRows = await db
     .select({
@@ -372,7 +402,7 @@ export async function loadScopedData(user: ProfileDTO): Promise<Bootstrap> {
     clients: clientRows as unknown as ProfileDTO[],
     doctors: visibleDoctors,
     assignments: assignmentRows.map((a) => ({ ...a, assignedAt: iso(a.assignedAt) })) as unknown as AssignmentDTO[],
-    appointments: appointmentList,
+    appointments: appointmentList,\n    invoices: invoiceList,
     history: historyRows.map((h) => ({ ...h, createdAt: iso(h.createdAt) })) as unknown as HistoryDTO[],
     records: recordRows.map((r) => ({ ...r, createdAt: iso(r.createdAt) })) as unknown as RecordDTO[],
     plans: planRows.map((p) => ({ ...p, createdAt: iso(p.createdAt) })) as unknown as PlanDTO[],
