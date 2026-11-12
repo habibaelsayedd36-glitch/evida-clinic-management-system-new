@@ -190,7 +190,8 @@ export type Bootstrap = {
   clients: ProfileDTO[];
   doctors: ProfileDTO[];
   assignments: AssignmentDTO[];
-  appointments: AppointmentDTO[];\n  invoices: InvoiceDTO[];
+  appointments: AppointmentDTO[];
+  invoices: InvoiceDTO[];
   history: HistoryDTO[];
   records: RecordDTO[];
   plans: PlanDTO[];
