@@ -59,7 +59,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   const upcoming = useMemo(
     () =>
       data.appointments
-        .filter((a) => ["scheduled", "pending_doctor", "pending_client"].includes(a.status) && new Date(a.scheduledAt) >= new Date())
+        .filter((a) => ["scheduled", "pending_doctor", "pending_client", "not_confirmed"].includes(a.status) && new Date(a.scheduledAt) >= new Date())
         .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt)),
     [data.appointments],
   );
