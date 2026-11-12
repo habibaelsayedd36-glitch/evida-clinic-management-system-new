@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 300" role="img" aria-label="EVIDA CLINIC">
+  <rect width="820" height="300" fill="#ffffff"/>
+  <text x="410" y="174" text-anchor="middle" fill="#650b79" font-family="Cormorant Garamond, Georgia, 'Times New Roman', serif" font-size="174" font-weight="500" letter-spacing="3">EVIDA</text>
+  <path d="M628 116 C672 91 711 91 754 105" fill="none" stroke="#650b79" stroke-width="3.2" stroke-linecap="round"/>
+  <text x="410" y="245" text-anchor="middle" fill="#650b79" font-family="Arial, Helvetica, sans-serif" font-size="43" font-weight="400" letter-spacing="23">CLINIC</text>
+</svg>
