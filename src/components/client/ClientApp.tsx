@@ -84,7 +84,10 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
       window.alert("Please allow pop-ups to print your invoice.");
       return;
     }
-    const escapeHtml = (value: string) => value.replace(/[&<>"\']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "\'": "&#39;" }[char] ?? char));
+    const escapeHtml = (value: string) => {
+      const entities: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "\'": "&#39;" };
+      return value.replace(/[&<>"\']/g, (char) => entities[char]);
+    };
     const money = (amount: number) => `${amount.toLocaleString("en-US")} EGP`;
     const payments = invoice.payments.length
       ? invoice.payments.map((payment) => `<tr><td>${escapeHtml(fmtDateTime(payment.paidAt))}</td><td>${escapeHtml(payment.method.replace(/_/g, " "))}</td><td class="amount">${money(payment.amount)}</td></tr>`).join("")
