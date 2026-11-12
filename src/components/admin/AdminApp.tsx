@@ -18,6 +18,7 @@ import {
   Activity,
   Pencil,
   Search,
+  Tags,
 } from "lucide-react";
 import { api, bmi, bmiLabel, currency, fmtDate, fmtRelative, fmtShortDate, groupBy, isSameDay } from "@/lib/client";
 import {
@@ -33,6 +34,7 @@ import { Shell, type NavItem } from "@/components/Shell";
 import { AppointmentForm, AssignmentForm, ClientForm, NotificationForm, StaffForm, useSubmit } from "@/components/forms";
 import { AppointmentRow, ClientFile } from "@/components/clinical";
 import { useBootstrap } from "@/lib/client";
+import { OffersManager } from "@/components/admin/OffersManager";
 
 const NAV: NavItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -43,6 +45,7 @@ const NAV: NavItem[] = [
   { id: "plans", label: "Plans", icon: ClipboardList },
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "offers", label: "Services & Offers", icon: Tags },
 ];
 
 const TITLES: Record<string, { title: string; subtitle: string }> = {
@@ -54,6 +57,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   plans: { title: "Treatment & diet plans", subtitle: "Follow every client's plans and session completion" },
   reports: { title: "Reports", subtitle: "Clinic performance in numbers — appointments, revenue and client adherence" },
   notifications: { title: "Notifications", subtitle: "Send alerts to one client, all clients or all doctors" },
+  offers: { title: "Services & Offers", subtitle: "Manage clinic services, full protocol details, EGP prices and offer deadlines" },
 };
 
 export function AdminApp({ initial }: { initial: Bootstrap }) {
@@ -829,6 +833,8 @@ export function AdminApp({ initial }: { initial: Bootstrap }) {
             </div>
           </div>
         ) : null}
+
+        {view === "offers" ? <OffersManager /> : null}
 
         {view === "notifications" ? (
           <div className="grid gap-4 lg:grid-cols-2">
