@@ -38,9 +38,12 @@ export function useSubmit(onDone: () => Promise<void> | void) {
 
 function useSynced<T>(initial: T, open: boolean) {
   const [state, setState] = useState<T>(initial);
+  // Form initial values are often created as object literals by the parent.
+  // Depending on that object resets user input on every render.
+  // Forms mount when opened, so only sync when the open state changes.
   useEffect(() => {
     if (open) setState(initial);
-  }, [initial, open]);
+  }, [open]);
   return [state, setState] as const;
 }
 
