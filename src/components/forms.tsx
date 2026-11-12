@@ -348,7 +348,8 @@ export function AppointmentForm({
     if (Number.isNaN(chosen.getTime())) return "Please choose a valid appointment date and time.";
     const day = chosen.getDay();
     const startMinutes = chosen.getHours() * 60 + chosen.getMinutes();
-    const duration = Number(form.durationMin) || 30;
+    const duration = Number(form.durationMin);
+    if (!Number.isFinite(duration) || duration < 1 || duration > 240) return "Please enter a valid appointment duration.";
     if (day === 5) return "The clinic is closed on Fridays. Please choose Saturday to Thursday.";
     if (startMinutes < 16 * 60 || startMinutes + duration > 22 * 60) {
       return "Appointments are available Saturday to Thursday, from 4:00 PM to 10:00 PM. Please choose a time within clinic hours.";
