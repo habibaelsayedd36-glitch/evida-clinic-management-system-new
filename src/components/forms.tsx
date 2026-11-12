@@ -340,8 +340,30 @@ export function AppointmentForm({
     open,
   );
   const { busy, run } = useSubmit(onDone);
+  const [scheduleError, setScheduleError] = useState("");
+
+  function validateClinicTime() {
+    if (!form.scheduledAt) return "Please choose an appointment date and time.";
+    const chosen = new Date(form.scheduledAt);
+    if (Number.isNaN(chosen.getTime())) return "Please choose a valid appointment date and time.";
+    const day = chosen.getDay();
+    const startMinutes = chosen.getHours() * 60 + chosen.getMinutes();
+    const duration = Number(form.durationMin) || 30;
+    if (day === 5) return "The clinic is closed on Fridays. Please choose Saturday to Thursday.";
+    if (startMinutes < 16 * 60 || startMinutes + duration > 22 * 60) {
+      return "Appointments are available Saturday to Thursday, from 4:00 PM to 10:00 PM. Please choose a time within clinic hours.";
+    }
+    return "";
+  }
 
   async function submit() {
+    const problem = validateClinicTime();
+    if (problem) {
+      setScheduleError(problem);
+      return;
+    }
+    setScheduleError("");
+
     const payload = {
       ...form,
       scheduledAt: new Date(form.scheduledAt).toISOString(),
@@ -410,9 +432,16 @@ export function AppointmentForm({
           <Input
             type="datetime-local"
             value={form.scheduledAt}
-            onChange={(e) => setForm((p) => ({ ...p, scheduledAt: e.target.value }))}
+            onChange={(e) => {
+              setForm((p) => ({ ...p, scheduledAt: e.target.value }));
+              setScheduleError("");
+            }}
           />
         </Field>
+        <div className="sm:col-span-2 rounded-xl border border-iris-200 bg-iris-50 px-3 py-2 text-sm text-iris-900">
+          <strong>Clinic hours:</strong> Saturday to Thursday, 4:00 PM–10:00 PM. Friday is closed. Appointments must finish by 10:00 PM.
+        </div>
+        {scheduleError ? <p role="alert" className="sm:col-span-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{scheduleError}</p> : null}
         <Field label="Duration (minutes)">
           <Input
             type="number"
