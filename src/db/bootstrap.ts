@@ -7,6 +7,8 @@ import {
   dietMeals,
   dietPlans,
   doseLogs,
+  invoices,
+  invoicePayments,
   medicalRecords,
   medicationDoses,
   notifications,
@@ -169,6 +171,10 @@ CREATE TABLE IF NOT EXISTS "notifications" (
   "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 CREATE INDEX IF NOT EXISTS "notifications_user_idx" ON "notifications" ("user_id");
+CREATE TABLE IF NOT EXISTS "invoices" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL, "invoice_number" text NOT NULL UNIQUE, "appointment_id" uuid NOT NULL UNIQUE REFERENCES "appointments"("id") ON DELETE CASCADE, "client_id" uuid NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE, "doctor_id" uuid REFERENCES "profiles"("id") ON DELETE SET NULL, "total_amount" integer DEFAULT 0 NOT NULL, "created_at" timestamp with time zone DEFAULT now() NOT NULL);
+CREATE INDEX IF NOT EXISTS "invoices_client_idx" ON "invoices" ("client_id");
+CREATE TABLE IF NOT EXISTS "invoice_payments" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL, "invoice_id" uuid NOT NULL REFERENCES "invoices"("id") ON DELETE CASCADE, "amount" integer NOT NULL, "method" text DEFAULT 'cash' NOT NULL, "reference" text, "note" text, "received_by" uuid REFERENCES "profiles"("id") ON DELETE SET NULL, "paid_at" timestamp with time zone DEFAULT now() NOT NULL);
+CREATE INDEX IF NOT EXISTS "invoice_payments_invoice_idx" ON "invoice_payments" ("invoice_id");
 CREATE TABLE IF NOT EXISTS "clinic_offers" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "title" text NOT NULL,
