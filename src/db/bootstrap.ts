@@ -174,6 +174,17 @@ CREATE TABLE IF NOT EXISTS "invoices" ("id" uuid PRIMARY KEY DEFAULT gen_random_
 CREATE INDEX IF NOT EXISTS "invoices_client_idx" ON "invoices" ("client_id");
 CREATE TABLE IF NOT EXISTS "invoice_payments" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL, "invoice_id" uuid NOT NULL REFERENCES "invoices"("id") ON DELETE CASCADE, "amount" integer NOT NULL, "method" text DEFAULT 'cash' NOT NULL, "reference" text, "note" text, "received_by" uuid REFERENCES "profiles"("id") ON DELETE SET NULL, "paid_at" timestamp with time zone DEFAULT now() NOT NULL);
 CREATE INDEX IF NOT EXISTS "invoice_payments_invoice_idx" ON "invoice_payments" ("invoice_id");
+INSERT INTO "medical_records" ("client_id", "appointment_id", "doctor_id", "title", "visit_date", "notes")
+SELECT a."client_id", a."id", a."doctor_id", a."kind" || ' visit', (a."scheduled_at" AT TIME ZONE 'Africa/Cairo')::date, COALESCE(a."notes", 'Visit imported from a completed appointment.')
+FROM "appointments" a
+WHERE a."status" = 'completed'
+  AND NOT EXISTS (SELECT 1 FROM "medical_records" mr WHERE mr."appointment_id" = a."id");
+INSERT INTO "invoices" ("invoice_number", "appointment_id", "client_id", "doctor_id", "total_amount")
+SELECT 'EVD-' || to_char(now(), 'YYYYMMDDHH24MISS') || '-' || upper(left(a."id"::text, 6)), a."id", a."client_id", a."doctor_id", COALESCE(a."price", 0)
+FROM "appointments" a
+WHERE a."status" = 'completed'
+  AND NOT EXISTS (SELECT 1 FROM "invoices" i WHERE i."appointment_id" = a."id");
+
 CREATE TABLE IF NOT EXISTS "clinic_offers" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "title" text NOT NULL,
