@@ -333,7 +333,7 @@ export function AppointmentForm({
       durationMin: String(initial?.durationMin ?? 30),
       kind: initial?.kind ?? "consultation",
       status: initial?.status ?? "scheduled",
-      location: initial?.location ?? "EVIDA Clinic — New Cairo, GOE Medical Park Mall 3",
+      location: initial?.location ?? "EVIDA Clinic, Medical Park, 3rd Floor, Clinic 331 — behind Joy Hospital, New Cairo",
       price: initial?.price?.toString() ?? "",
       notes: initial?.notes ?? "",
     },
