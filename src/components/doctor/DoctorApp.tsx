@@ -132,7 +132,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
   const visibleDiets = data.dietPlans.filter((d) => clientFilter === "all" || d.clientId === clientFilter);
   const visibleRecords = data.records.filter((r) => clientFilter === "all" || r.clientId === clientFilter);
 
-  const myRevenue = data.appointments.filter((a) => a.status === "completed").reduce((s, a) => s + (a.price ?? 0), 0);
+  const myRevenue = data.invoices.filter((invoice) => invoice.doctorId === data.me.id).reduce((sum, invoice) => sum + invoice.paidAmount, 0);
   const activeDoses = data.doses.filter((d) => d.active);
   const adherenceToday = activeDoses.filter((d) =>
     data.doseLogs.some((l) => l.doseId === d.id && isSameDay(l.takenAt)),
