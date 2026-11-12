@@ -328,7 +328,7 @@ export async function createAppointment(user: ProfileDTO, body: Body) {
       scheduledAt,
       durationMin: int(body.durationMin) ?? 30,
       kind: str(body.kind, { max: 40 }) ?? "consultation",
-      status: user.role === "client" ? "scheduled" : (str(body.status, { max: 30 }) ?? "scheduled"),
+      status: user.role === "client" || user.role === "admin" ? "pending_doctor" : "scheduled",
       location: str(body.location, { max: 200 }) ?? "EVIDA Clinic — New Cairo, GOE Medical Park Mall 3",
       notes: str(body.notes, { max: 2000 }),
       price: user.role === "client" ? null : int(body.price),
@@ -375,15 +375,39 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
   await assertClientAccess(user, appt.clientId);
 
   const patch: Record<string, unknown> = { updatedAt: new Date() };
+  const requestedTime = body.scheduledAt !== undefined ? timestamp(body.scheduledAt, "Appointment time") : null;
+  const timeChanged = requestedTime !== null && requestedTime.getTime() !== new Date(appt.scheduledAt).getTime();
+
   if (user.role === "client") {
     const status = str(body.status, { max: 30 });
-    assert(status === "cancelled", "A client can only cancel his own appointment — other changes are made by the doctor or admin");
-    patch.status = "cancelled";
+    if (timeChanged) {
+      assert(!["completed", "cancelled", "no_show"].includes(appt.status), "This appointment can no longer be rescheduled");
+      patch.scheduledAt = requestedTime;
+      patch.status = "pending_doctor";
+    } else if (status === "scheduled") {
+      assert(appt.status === "pending_client", "There is no proposed time waiting for your confirmation");
+      patch.status = "scheduled";
+    } else if (status === "cancelled") {
+      patch.status = "cancelled";
+    } else {
+      throw new AccessError("Choose a different date and time to request a reschedule, or confirm the doctor's proposed time", 400);
+    }
   } else {
-    if (body.scheduledAt !== undefined) patch.scheduledAt = timestamp(body.scheduledAt);
+    if (timeChanged) {
+      patch.scheduledAt = requestedTime;
+      patch.status = "pending_client";
+    } else if (body.status !== undefined) {
+      const nextStatus = str(body.status, { max: 30 }) ?? appt.status;
+      if (nextStatus === "scheduled" && appt.status === "pending_doctor") {
+        patch.status = "scheduled";
+      } else if (["completed", "cancelled", "no_show"].includes(nextStatus)) {
+        patch.status = nextStatus;
+      } else {
+        assert(nextStatus === appt.status, "Confirm the client's request or suggest a different date and time");
+      }
+    }
     if (body.durationMin !== undefined) patch.durationMin = int(body.durationMin) ?? 30;
     if (body.kind !== undefined) patch.kind = str(body.kind, { max: 40 }) ?? appt.kind;
-    if (body.status !== undefined) patch.status = str(body.status, { max: 30 }) ?? appt.status;
     if (body.location !== undefined) patch.location = str(body.location, { max: 200 });
     if (body.notes !== undefined) patch.notes = str(body.notes, { max: 2000 });
     if (body.price !== undefined) patch.price = int(body.price);
@@ -397,7 +421,7 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
 
   await db.update(appointments).set(patch).where(eq(appointments.id, apptId));
 
-  const action = patch.status && patch.status !== appt.status ? String(patch.status) : "updated";
+  const action = patch.status && patch.status !== appt.status ? String(patch.status) : timeChanged ? "reschedule_requested" : "updated";
   await db.insert(appointmentHistory).values({
     appointmentId: apptId,
     clientId: appt.clientId,
@@ -413,11 +437,15 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
 
   const recipients = user.role === "client" ? [appt.doctorId, ...(await staffIds("admin"))] : [appt.clientId];
   await notify(recipients, {
-    title: action === "cancelled" ? "Appointment cancelled" : "Appointment updated",
+    title:
+      action === "cancelled" ? "Appointment cancelled" :
+      action === "pending_doctor" ? "Reschedule request from client" :
+      action === "pending_client" ? "Doctor suggested a new appointment time" :
+      action === "scheduled" ? "Appointment confirmed" : "Appointment updated",
     body:
-      patch.scheduledAt !== undefined
-        ? `New time: ${fmtWhen(patch.scheduledAt as Date)}`
-        : `Appointment status is now: ${String(patch.status ?? appt.status)}`,
+      timeChanged
+        ? `${user.role === "client" ? "Client requested" : "Doctor suggested"}: ${fmtWhen(requestedTime as Date)}. ${user.role === "client" ? "Please confirm or suggest another time." : "Please confirm this time or request another change."}`
+        : action === "scheduled" ? "The appointment time has been confirmed." : `Appointment status is now: ${String(patch.status ?? appt.status)}`,
     kind: "appointment",
     actorId: user.id,
     clientId: appt.clientId,
