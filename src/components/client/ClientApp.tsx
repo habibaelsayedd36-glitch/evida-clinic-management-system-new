@@ -58,7 +58,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   const upcoming = useMemo(
     () =>
       data.appointments
-        .filter((a) => a.status === "scheduled" && new Date(a.scheduledAt) >= new Date())
+        .filter((a) => ["scheduled", "pending_doctor", "pending_client"].includes(a.status) && new Date(a.scheduledAt) >= new Date())
         .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt)),
     [data.appointments],
   );
@@ -297,7 +297,17 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                   icon={<CalendarDays className="h-5 w-5" />}
                 />
               ) : (
-                upcoming.map((a) => <AppointmentRow key={a.id} appt={a} showDoctor canEdit onCancel={() => cancel(a)} />)
+                upcoming.map((a) => (
+                  <AppointmentRow
+                    key={a.id}
+                    appt={a}
+                    showDoctor
+                    canEdit
+                    onConfirm={a.status === "pending_client" ? () => void run(() => api("PATCH", `/api/appointments/${a.id}`, { status: "scheduled" }), "Appointment confirmed") : undefined}
+                    onEdit={() => setApptModal({ open: true, appt: a })}
+                    onCancel={() => cancel(a)}
+                  />
+                ))
               )}
             </Card>
 
