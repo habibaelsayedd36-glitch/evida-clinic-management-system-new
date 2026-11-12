@@ -339,7 +339,12 @@ export function AppointmentForm({
   const { busy, run } = useSubmit(onDone);
 
   async function submit() {
-    const payload = { ...form, durationMin: Number(form.durationMin), price: form.price ? Number(form.price) : null };
+    const payload = {
+      ...form,
+      scheduledAt: new Date(form.scheduledAt).toISOString(),
+      durationMin: Number(form.durationMin),
+      price: form.price ? Number(form.price) : null,
+    };
     const done = initial
       ? await run(() => api("PATCH", `/api/appointments/${initial.id}`, payload), "Appointment updated")
       : await run(() => api("POST", "/api/appointments", payload), "Appointment booked");
