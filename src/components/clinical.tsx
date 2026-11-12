@@ -29,6 +29,7 @@ import {
   type PlanDTO,
   type ProfileDTO,
   type RecordDTO,
+  type InvoiceDTO,
 } from "@/lib/types";
 import { useSubmit } from "./forms";
 import { Avatar, Badge, Button, Card, EmptyState, Field, Input, Modal, Progress, Select, STATUS_TONES, Textarea } from "./ui";
@@ -855,7 +856,8 @@ export function ClientFile({
   onEditAppointment?: (appt: AppointmentDTO) => void;
   onAppointmentStatus?: (appt: AppointmentDTO, status: string) => void;
 }) {
-  const [tab, setTab] = useState<"overview" | "appointments" | "records" | "plans" | "diet">("overview");
+  const [tab, setTab] = useState<"overview" | "appointments" | "records" | "plans" | "diet" | "billing">("overview");
+  const [paymentDrafts, setPaymentDrafts] = useState<Record<string, { amount: string; method: string }>>({});
   const [recordModal, setRecordModal] = useState<{ open: boolean; record?: RecordDTO | null }>({ open: false });
   const [planModal, setPlanModal] = useState<{ open: boolean; plan?: PlanDTO | null }>({ open: false });
   const [doseModal, setDoseModal] = useState<{ open: boolean; dose?: DoseDTO | null }>({ open: false });
@@ -873,6 +875,7 @@ export function ClientFile({
   const doses = data.doses.filter((d) => d.clientId === client.id);
   const meals = data.meals.filter((m) => m.clientId === client.id);
   const doseLogs = data.doseLogs.filter((l) => l.clientId === client.id);
+  const invoices = data.invoices.filter((invoice) => invoice.clientId === client.id);
   const assignment = data.assignments.find((a) => a.clientId === client.id);
   const value = bmi(client.heightCm, client.weightKg);
 
@@ -882,6 +885,7 @@ export function ClientFile({
     { id: "records", label: `Records (${records.length})` },
     { id: "plans", label: `Treatment (${plans.length})` },
     { id: "diet", label: `Nutrition (${diets.length})` },
+    { id: "billing", label: `Invoices (${invoices.length})` },
   ] as const;
 
   async function remove(resource: string, id: string, label: string) {
@@ -1063,6 +1067,45 @@ export function ClientFile({
                 />
               ))
             )}
+          </div>
+        ) : null}
+
+        {tab === "billing" ? (
+          <div className="space-y-3">
+            {invoices.length === 0 ? <EmptyState title="No invoices yet" hint="An invoice is created automatically when an appointment is completed." /> : invoices.map((invoice) => {
+              const draft = paymentDrafts[invoice.id] ?? { amount: "", method: "cash" };
+              return (
+                <Card key={invoice.id} className="p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-ink">Invoice {invoice.invoiceNumber}</p>
+                      <p className="mt-1 text-[11px] text-ink/55">{invoice.appointmentKind ?? "Clinic visit"} · {fmtDate(invoice.createdAt)}</p>
+                    </div>
+                    <Badge tone={invoice.status === "paid" ? "moss" : invoice.status === "partially_paid" ? "clay" : "berry"}>
+                      {invoice.status === "paid" ? "Paid" : invoice.status === "partially_paid" ? "Partially paid" : "Unpaid"}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                    <div className="rounded-xl bg-sand-100 p-2"><p className="text-[10px] text-ink/50">Total</p><p className="num text-sm font-bold">{invoice.totalAmount.toLocaleString("en-US")} EGP</p></div>
+                    <div className="rounded-xl bg-moss-100/60 p-2"><p className="text-[10px] text-ink/50">Paid</p><p className="num text-sm font-bold">{invoice.paidAmount.toLocaleString("en-US")} EGP</p></div>
+                    <div className="rounded-xl bg-clay-100/60 p-2"><p className="text-[10px] text-ink/50">Remaining</p><p className="num text-sm font-bold">{invoice.remainingAmount.toLocaleString("en-US")} EGP</p></div>
+                  </div>
+                  {invoice.payments.length ? (
+                    <div className="mt-3 space-y-1.5">
+                      <p className="text-[11px] font-semibold text-ink/60">Payment history</p>
+                      {invoice.payments.map((payment) => <div key={payment.id} className="flex justify-between gap-2 text-xs text-ink/70"><span>{payment.method.replace("_", " ")} · {fmtDateTime(payment.paidAt)}</span><strong className="num">{payment.amount.toLocaleString("en-US")} EGP</strong></div>)}
+                    </div>
+                  ) : null}
+                  {canEdit && invoice.remainingAmount > 0 ? (
+                    <div className="mt-4 grid gap-2 border-t border-ink/8 pt-3 sm:grid-cols-[1fr_1fr_auto]">
+                      <Field label="Payment amount (EGP)"><Input type="number" min="1" max={invoice.remainingAmount} value={draft.amount} onChange={(e) => setPaymentDrafts((p) => ({ ...p, [invoice.id]: { ...draft, amount: e.target.value } }))} placeholder={String(invoice.remainingAmount)} /></Field>
+                      <Field label="Payment method"><Select value={draft.method} onChange={(e) => setPaymentDrafts((p) => ({ ...p, [invoice.id]: { ...draft, method: e.target.value } }))}><option value="cash">Cash</option><option value="card">Card</option><option value="bank_transfer">Bank transfer</option><option value="wallet">Wallet</option><option value="instapay">InstaPay</option><option value="other">Other</option></Select></Field>
+                      <div className="flex items-end"><Button size="sm" onClick={() => void run(() => api("POST", "/api/invoice-payments", { invoiceId: invoice.id, amount: Number(draft.amount || invoice.remainingAmount), method: draft.method }), "Payment recorded")}>Record payment</Button></div>
+                    </div>
+                  ) : null}
+                </Card>
+              );
+            })}
           </div>
         ) : null}
 
