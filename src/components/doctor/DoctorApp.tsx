@@ -210,7 +210,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                       onComplete={() => changeStatus(a, "completed")}
                       onConfirm={a.status === "pending_doctor" ? () => changeStatus(a, "scheduled") : undefined}
                       onNotConfirm={["pending_doctor", "scheduled"].includes(a.status) ? () => changeStatus(a, "not_confirmed") : undefined}
-                      onReschedule={a.status === "pending_doctor" ? () => setApptModal({ open: true, appt: a }) : undefined}
+                      onReschedule={["pending_doctor", "scheduled"].includes(a.status) ? () => setApptModal({ open: true, appt: a }) : undefined}
                       onCancel={() => changeStatus(a, "cancelled")}
                       onDelete={() => remove("appointments", a.id, "appointment")}
                     />
@@ -397,7 +397,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                       onComplete={() => changeStatus(a, "completed")}
                       onConfirm={a.status === "pending_doctor" ? () => changeStatus(a, "scheduled") : undefined}
                       onNotConfirm={["pending_doctor", "scheduled"].includes(a.status) ? () => changeStatus(a, "not_confirmed") : undefined}
-                      onReschedule={a.status === "pending_doctor" ? () => setApptModal({ open: true, appt: a }) : undefined}
+                      onReschedule={["pending_doctor", "scheduled"].includes(a.status) ? () => setApptModal({ open: true, appt: a }) : undefined}
                       onCancel={() => changeStatus(a, "cancelled")}
                       onDelete={() => remove("appointments", a.id, "appointment")}
                     />
