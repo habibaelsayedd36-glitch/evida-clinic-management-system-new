@@ -169,6 +169,20 @@ CREATE TABLE IF NOT EXISTS "notifications" (
   "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 CREATE INDEX IF NOT EXISTS "notifications_user_idx" ON "notifications" ("user_id");
+CREATE TABLE IF NOT EXISTS "clinic_offers" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "title" text NOT NULL,
+  "category" text NOT NULL DEFAULT 'service',
+  "description" text,
+  "protocol_details" text,
+  "price" integer,
+  "original_price" integer,
+  "package_size" text,
+  "valid_until" date,
+  "active" boolean DEFAULT true NOT NULL,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
 `;
 
 const day = (offset: number, hour = 10, minute = 0) => {
