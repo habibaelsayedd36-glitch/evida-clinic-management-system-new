@@ -104,7 +104,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
         notifications={data.notifications}
         onRefresh={refresh}
         refreshing={loading}
-        title={TITLES[view].title}
+        title={view === "home" ? `Welcome, ${me.fullName}` : TITLES[view].title}
         subtitle={TITLES[view].subtitle}
         headerAction={
           <Button size="sm" icon={<CalendarPlus className="h-4 w-4" />} onClick={() => setApptModal({ open: true })} type="button">
