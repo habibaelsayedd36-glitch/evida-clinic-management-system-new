@@ -328,7 +328,7 @@ export async function createAppointment(user: ProfileDTO, body: Body) {
       scheduledAt,
       durationMin: int(body.durationMin) ?? 30,
       kind: str(body.kind, { max: 40 }) ?? "consultation",
-      status: user.role === "client" || user.role === "admin" ? "pending_doctor" : "scheduled",
+      status: "pending_doctor",
       location: str(body.location, { max: 200 }) ?? "EVIDA Clinic — New Cairo, GOE Medical Park Mall 3",
       notes: str(body.notes, { max: 2000 }),
       price: user.role === "client" ? null : int(body.price),
@@ -405,7 +405,10 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
       const nextStatus = str(body.status, { max: 30 }) ?? appt.status;
       if (nextStatus === "scheduled" && appt.status === "pending_doctor") {
         patch.status = "scheduled";
-      } else if (["completed", "cancelled", "no_show", "not_confirmed"].includes(nextStatus)) {
+      } else if (
+        ["completed", "cancelled", "no_show"].includes(nextStatus) ||
+        (nextStatus === "not_confirmed" && ["pending_doctor", "scheduled"].includes(appt.status))
+      ) {
         patch.status = nextStatus;
       } else {
         assert(nextStatus === appt.status, "Confirm the client's request or suggest a different date and time");
