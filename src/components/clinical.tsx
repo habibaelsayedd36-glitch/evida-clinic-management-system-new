@@ -1280,7 +1280,7 @@ export function AppointmentRow({
             ) : null}
             {appt.status === "pending_doctor" && onNotConfirm ? (
               <Button size="sm" variant="outline" onClick={onNotConfirm} type="button">
-                Not confirm
+                Not confirmed
               </Button>
             ) : null}
             {appt.status === "pending_doctor" && onReschedule ? (
