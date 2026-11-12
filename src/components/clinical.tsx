@@ -179,7 +179,7 @@ export function PlanForm({
     <Modal
       open={open}
       onClose={onClose}
-      title={initial ? "Edit treatment plan" : "New treatment plan"}
+      title={initial ? "Edit treatment protocol" : "New treatment protocol"}
       footer={
         <>
           <Button variant="ghost" onClick={onClose} type="button">
@@ -192,8 +192,8 @@ export function PlanForm({
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Plan name" className="sm:col-span-2">
-          <Input value={form.title} onChange={set("title")} placeholder="Weight-loss programme — 6 months" />
+        <Field label="Protocol name" className="sm:col-span-2">
+          <Input value={form.title} onChange={set("title")} placeholder="e.g. Weight management protocol" />
         </Field>
         <Field label="Description" className="sm:col-span-2">
           <Textarea value={form.description} onChange={set("description")} />
@@ -240,7 +240,7 @@ export function DoseForm({
   initial?: DoseDTO | null;
 }) {
   const [form, setForm] = useState(() => ({
-    medicine: initial?.medicine ?? "",
+    medicine: "Dose",
     dosage: initial?.dosage ?? "",
     frequency: initial?.frequency ?? "",
     timeOfDay: initial?.timeOfDay ?? "morning",
@@ -252,7 +252,7 @@ export function DoseForm({
   }));
   const { busy, run } = useSubmit(onDone);
   const set =
-    (k: "medicine" | "dosage" | "frequency" | "timeOfDay" | "instructions" | "startDate" | "endDate" | "planId") =>
+    (k: "dosage" | "frequency" | "timeOfDay" | "instructions" | "startDate" | "endDate" | "planId") =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
       setForm((p) => ({ ...p, [k]: e.target.value }));
 
@@ -268,7 +268,7 @@ export function DoseForm({
     <Modal
       open={open}
       onClose={onClose}
-      title={initial ? "Edit dose" : "Add a dose / medication"}
+      title={initial ? "Edit dose" : "Add dose details"}
       footer={
         <>
           <Button variant="ghost" onClick={onClose} type="button">
@@ -281,14 +281,11 @@ export function DoseForm({
       }
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Medicine">
-          <Input value={form.medicine} onChange={set("medicine")} placeholder="Metformin 500mg" />
-        </Field>
-        <Field label="Dosage">
-          <Input value={form.dosage} onChange={set("dosage")} placeholder="1 tablet" />
+        <Field label="Dose amount / units">
+          <Input value={form.dosage} onChange={set("dosage")} placeholder="e.g. 10 units" />
         </Field>
         <Field label="Frequency">
-          <Input value={form.frequency} onChange={set("frequency")} placeholder="Twice daily" />
+          <Input value={form.frequency} onChange={set("frequency")} placeholder="e.g. Once weekly" />
         </Field>
         <Field label="Time of day">
           <Select value={form.timeOfDay ?? ""} onChange={set("timeOfDay")}>
@@ -669,7 +666,7 @@ export function PlanCard({
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate text-[13px] font-semibold text-ink">
-                          {dose.medicine}
+                          {dose.dosage || "Dose"}
                           {!dose.active ? <span className="ms-2 text-[10px] text-ink/45">(stopped)</span> : null}
                         </p>
                         <p className="mt-0.5 text-[11px] text-ink/55">
@@ -1077,7 +1074,7 @@ export function ClientFile({
                   Treatment plan
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setDoseModal({ open: true })} icon={<Pill className="h-3.5 w-3.5" />} type="button">
-                  Standalone dose
+                  Standalone dose entry
                 </Button>
               </div>
             ) : null}
@@ -1115,7 +1112,7 @@ export function ClientFile({
                     .filter((d) => !d.planId)
                     .map((d) => (
                       <li key={d.id} className="flex items-center justify-between gap-2 rounded-lg bg-sand-100 px-3 py-2 text-xs">
-                        <span className="font-semibold text-ink">{d.medicine}</span>
+                        <span className="font-semibold text-ink">{d.dosage || "Dose"}</span>
                         <span className="flex gap-1">
                           <button
                             type="button"
