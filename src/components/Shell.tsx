@@ -159,7 +159,7 @@ export function Shell({
 
       <div className="relative flex min-h-screen">
         {/* desktop sidebar */}
-        <aside className="sticky top-0 hidden h-screen w-[268px] shrink-0 border-e border-ink/8 bg-sand-100/70 backdrop-blur lg:block">
+        <aside className="sticky top-0 hidden h-screen w-[240px] xl:w-[252px] 2xl:w-[268px] shrink-0 border-e border-ink/8 bg-sand-100/70 backdrop-blur lg:block">
           {sidebar}
         </aside>
 
@@ -183,7 +183,7 @@ export function Shell({
 
         <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
           <header className="sticky top-0 z-40 border-b border-ink/8 bg-sand-50/85 backdrop-blur-md">
-            <div className="flex min-w-0 flex-nowrap items-center gap-2 px-3 py-3 sm:gap-3 sm:px-6 sm:py-3.5">
+            <div className="flex min-w-0 flex-nowrap items-center gap-2 px-3 py-3 sm:gap-3 sm:px-5 lg:px-6 xl:px-8 sm:py-3.5">
               <button
                 type="button"
                 onClick={() => setMobileNav(true)}
@@ -273,13 +273,13 @@ export function Shell({
             </div>
           </header>
 
-          <main className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-6">
-            <div key={active} className="anim-rise mx-auto min-w-0 w-full max-w-[1180px]">
+          <main className="min-w-0 flex-1 px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6 xl:px-8 xl:py-7">
+            <div key={active} className="anim-rise mx-auto min-w-0 w-full max-w-[1440px]">
               {children}
             </div>
           </main>
 
-          <footer className="px-3 pb-6 pt-2 text-center text-[10px] leading-5 text-ink/40 sm:px-6 sm:text-[11px]">
+          <footer className="px-3 pb-5 pt-2 text-center text-[10px] leading-5 text-ink/40 sm:px-5 lg:px-6 xl:px-8 sm:text-[11px]">
             <span className="inline-flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
               EVIDA Clinic — New Cairo · GOE Medical Park Mall 3, clinic 331 · 01000115502
