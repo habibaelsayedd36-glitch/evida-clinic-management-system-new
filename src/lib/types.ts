@@ -213,7 +213,9 @@ export const KIND_LABELS: Record<string, string> = {
 };
 
 export const STATUS_LABELS: Record<string, string> = {
-  scheduled: "Scheduled",
+  scheduled: "Confirmed",
+  pending_doctor: "Awaiting doctor confirmation",
+  pending_client: "Awaiting client confirmation",
   completed: "Completed",
   cancelled: "Cancelled",
   no_show: "No show",
