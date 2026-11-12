@@ -28,6 +28,7 @@ import { AppointmentRow, DietCard, PlanCard, RecordCard } from "@/components/cli
 const NAV: NavItem[] = [
   { id: "home", label: "Home", icon: LayoutDashboard },
   { id: "appointments", label: "My appointments", icon: CalendarDays },
+  { id: "services", label: "Services", icon: Salad },
   { id: "diet", label: "Diet plan", icon: Salad },
   { id: "treatment", label: "Treatment", icon: ClipboardList },
   { id: "records", label: "Medical records", icon: Stethoscope },
@@ -37,7 +38,8 @@ const NAV: NavItem[] = [
 
 const TITLES: Record<string, { title: string; subtitle: string }> = {
   home: { title: "Welcome to EVIDA", subtitle: "Your health follow-up in one place" },
-  appointments: { title: "My appointments", subtitle: "Book a new appointment or cancel an existing one" },
+  appointments: { title: "My appointments", subtitle: "Book, confirm or request a different appointment time" },
+  services: { title: "EVIDA Services", subtitle: "Nutrition and weight-management services with clinic pricing" },
   diet: { title: "Diet plan", subtitle: "The daily meals your doctor wrote for you" },
   treatment: { title: "Treatment plan", subtitle: "Plans, sessions and daily doses" },
   records: { title: "Medical records", subtitle: "Diagnosis and measurements from your visits" },
@@ -164,33 +166,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
               </div>
             </Card>
 
-            <Card>
-              <SectionHeader title="EVIDA Nutrition & Weight Management" subtitle="Clinic service prices — all plans require assessment by the treating doctor" icon={<Salad className="h-4 w-4" />} />
-              <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
-                {[
-                  { name: "Normal Diet", detail: "Customized clinical nutrition plan with InBody assessment", price: "500 EGP", old: "1,000 EGP" },
-                  { name: "UNCUT – Semaglutide", detail: "10 Units: 1,500 EGP · 500 Units package: 20,000 EGP", price: "1,500 EGP", old: "2,000 EGP" },
-                  { name: "PROCUT – Tirzepatide", detail: "10 Units: 2,500 EGP · 200 Units package: 30,000 EGP", price: "2,500 EGP", old: "3,000 EGP" },
-                  { name: "PROCUT PREMIUM – Retatrutide", detail: "10 Units: 3,000 EGP · 200 Units package: 35,000 EGP", price: "3,000 EGP", old: "3,500 EGP" },
-                  { name: "Mesoline – Body slimming", detail: "Number of sessions is decided by the doctor after consultation", price: "3,500 EGP", old: "4,000 EGP" },
-                ].map((service) => (
-                  <div key={service.name} className="rounded-xl border border-ink/8 bg-white p-3.5">
-                    <p className="text-[13px] font-semibold text-ink">{service.name}</p>
-                    <p className="mt-1 text-[11px] leading-5 text-ink/60">{service.detail}</p>
-                    <div className="mt-3 flex items-center gap-2">
-                      <span className="num text-sm font-bold text-iris-700">{service.price}</span>
-                      <span className="num text-[11px] text-ink/40 line-through">{service.old}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="px-5 pb-4">
-                <a href="https://wa.me/201000115502" target="_blank" rel="noreferrer" className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-95">
-                  <MessageCircle className="h-4 w-4" /> Chat with EVIDA on WhatsApp
-                </a>
-                <p className="mt-2 text-[10px] leading-4 text-ink/45">Medication options and dosing are subject to medical evaluation and prescription. Prices and offers may be updated by the clinic.</p>
-              </div>
-            </Card>
+            
 
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <StatTile
@@ -334,6 +310,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                     canEdit
                     onConfirm={a.status === "pending_client" ? () => void run(() => api("PATCH", `/api/appointments/${a.id}`, { status: "scheduled" }), "Appointment confirmed") : undefined}
                     onEdit={() => setApptModal({ open: true, appt: a })}
+                    onClientReschedule={() => setApptModal({ open: true, appt: a })}
                     onCancel={() => cancel(a)}
                   />
                 ))
@@ -347,6 +324,22 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
               ) : (
                 past.map((a) => <AppointmentRow key={a.id} appt={a} showDoctor canEdit={false} />)
               )}
+            </Card>
+          </div>
+        ) : null}
+
+        {view === "services" ? (
+          <div className="space-y-4">
+            <Card>
+              <SectionHeader title="Nutrition & Weight Management" subtitle="All services require assessment by the treating doctor. Medication choice and dosing are determined by the doctor." icon={<Salad className="h-4 w-4" />} />
+              <div className="divide-y divide-ink/8">
+                <div className="px-5 py-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-ink">Normal Diet</h3><p className="mt-1 text-xs leading-5 text-ink/60">30-minute nutrition consultation with a customized clinical diet plan, InBody body-composition assessment and macronutrient optimization. Plans are designed by Dr. Mohab and Dr. Omnia.</p></div><div className="text-end"><p className="num text-sm font-bold text-iris-700">500 EGP</p><p className="num text-xs text-ink/40 line-through">1,000 EGP</p></div></div></div>
+                <div className="px-5 py-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-ink">UNCUT – Semaglutide</h3><p className="mt-1 text-xs leading-5 text-ink/60">Medication-based weight-management service. The 10 Units option and 500 Units package are listed for pricing reference; suitability, prescription and dose schedule are decided only by the treating doctor after medical assessment.</p><p className="mt-2 text-[11px] text-ink/55">10 Units: 1,500 EGP · 500 Units package: 20,000 EGP</p></div><div className="text-end"><p className="num text-sm font-bold text-iris-700">1,500 EGP</p><p className="num text-xs text-ink/40 line-through">2,000 EGP</p></div></div></div>
+                <div className="px-5 py-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-ink">PROCUT – Tirzepatide</h3><p className="mt-1 text-xs leading-5 text-ink/60">Medication-based weight-management service. The 10 Units option and 200 Units package are listed for pricing reference; suitability, prescription and dose schedule are decided only by the treating doctor after medical assessment.</p><p className="mt-2 text-[11px] text-ink/55">10 Units: 2,500 EGP · 200 Units package: 30,000 EGP</p></div><div className="text-end"><p className="num text-sm font-bold text-iris-700">2,500 EGP</p><p className="num text-xs text-ink/40 line-through">3,000 EGP</p></div></div></div>
+                <div className="px-5 py-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-ink">PROCUT PREMIUM – Retatrutide</h3><p className="mt-1 text-xs leading-5 text-ink/60">Doctor-assessed weight-management service. The 10 Units option and 200 Units package are listed for pricing reference; use is subject to the treating doctor's assessment, prescription and monitoring.</p><p className="mt-2 text-[11px] text-ink/55">10 Units: 3,000 EGP · 200 Units package: 35,000 EGP</p></div><div className="text-end"><p className="num text-sm font-bold text-iris-700">3,000 EGP</p><p className="num text-xs text-ink/40 line-through">3,500 EGP</p></div></div></div>
+                <div className="px-5 py-4"><div className="flex flex-wrap items-start justify-between gap-3"><div><h3 className="text-sm font-semibold text-ink">Mesoline – Body slimming</h3><p className="mt-1 text-xs leading-5 text-ink/60">Local body-slimming injection service. The doctor assesses suitability and determines the treatment area and number of sessions after consultation.</p></div><div className="text-end"><p className="num text-sm font-bold text-iris-700">3,500 EGP</p><p className="num text-xs text-ink/40 line-through">4,000 EGP</p></div></div></div>
+              </div>
+              <div className="px-5 pb-4"><a href="https://wa.me/201000115502" target="_blank" rel="noreferrer" className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-95"><MessageCircle className="h-4 w-4" /> Chat with EVIDA on WhatsApp</a><p className="mt-2 text-[10px] leading-4 text-ink/45">Prices and offers may be updated by the clinic. Medication options are subject to medical assessment and prescription.</p></div>
             </Card>
           </div>
         ) : null}
