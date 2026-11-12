@@ -50,7 +50,7 @@ const NAV: NavItem[] = [
   { id: "today", label: "My day", icon: LayoutDashboard },
   { id: "clients", label: "My clients", icon: Users },
   { id: "appointments", label: "Appointments", icon: CalendarDays },
-  { id: "plans", label: "Treatment plans", icon: ClipboardList },
+  { id: "plans", label: "Treatment protocols", icon: ClipboardList },
   { id: "diet", label: "Diet plans", icon: Salad },
   { id: "records", label: "Medical records", icon: Stethoscope },
   { id: "notifications", label: "Notifications", icon: Bell },
@@ -63,7 +63,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
     subtitle: "Only the clients linked to you — other doctors' clients are never visible here",
   },
   appointments: { title: "Appointments", subtitle: "Book and manage appointments for your clients" },
-  plans: { title: "Treatment plans", subtitle: "Plans, doses and session completion tracking" },
+  plans: { title: "Treatment protocols", subtitle: "Assigned protocols, dose schedules and session completion" },
   diet: { title: "Diet plans", subtitle: "Plans and meals for your clients" },
   records: { title: "Medical records", subtitle: "Diagnosis and measurements per visit" },
   notifications: { title: "Notifications", subtitle: "Your inbox plus sending messages to your clients" },
@@ -252,7 +252,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                     return (
                       <div key={dose.id} className="rounded-xl border border-ink/8 bg-white px-3.5 py-3">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="truncate text-[13px] font-semibold text-ink">{dose.medicine}</p>
+                          <p className="truncate text-[13px] font-semibold text-ink">{dose.dosage || "Dose"}</p>
                           <Badge tone={logs.some((l) => isSameDay(l.takenAt)) ? "moss" : "clay"}>
                             {logs.some((l) => isSameDay(l.takenAt)) ? "Taken today" : "Not yet"}
                           </Badge>
@@ -459,7 +459,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                         .map((d) => (
                           <div key={d.id} className="flex items-center justify-between gap-3 px-5 py-3">
                             <div>
-                              <p className="text-[13px] font-semibold text-ink">{d.medicine}</p>
+                              <p className="text-[13px] font-semibold text-ink">{d.dosage || "Dose"}</p>
                               <p className="text-[11px] text-ink/55">
                                 {d.clientName} · {d.frequency ?? "—"}
                               </p>
