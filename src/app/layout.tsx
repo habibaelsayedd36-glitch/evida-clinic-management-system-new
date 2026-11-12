@@ -4,7 +4,9 @@ import "./globals.css";
 import PwaRegister from "./pwa-register";
 import PwaInstallGuide from "./pwa-install-guide";
 
-export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" } as const;\n\nexport const metadata: Metadata = {
+export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" } as const;
+
+export const metadata: Metadata = {
   title: "EVIDA | Clinic Management System",
   description:
     "EVIDA clinic management system: admin, doctor and client accounts with appointments, treatment plans, diet plans, medical records, dose tracking and notifications — with strict per-role access control.",
