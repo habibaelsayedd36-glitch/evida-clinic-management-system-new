@@ -1,16 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#fbf8f7"/>
-  <path d="M0 0h512v78c-83 25-138 14-207-15C199 29 112 21 0 69V0Z" fill="#4b0758"/>
-  <path d="M0 512v-58c87-32 153-21 225 10 82 35 174 32 287-22v70H0Z" fill="#4b0758"/>
-  <g fill="none" stroke="#560b61" stroke-linecap="round" stroke-linejoin="round">
-    <path stroke-width="8" d="M178 244c-4-47 15-91 54-117 27-18 66-22 95-8 31 15 50 45 53 79 2 25-6 47-20 65-9 12-18 22-20 39-2 15 4 27 13 37-21 9-42 13-65 10-42-5-78-27-96-62-8-15-12-29-14-43Z"/>
-    <path stroke-width="8" d="M180 213c-27-15-50-7-61 13-11 21-5 47 16 62 13 10 27 12 43 8"/>
-    <path stroke-width="8" d="M183 211c-1-46 19-83 53-105 29-19 68-20 98-4 19 10 34 27 42 47-25-13-49-16-72-10-30 7-47 27-61 49-17 26-35 38-60 39Z"/>
-    <path stroke-width="7" d="M319 242c13-8 27-8 40 0M330 266c8 5 17 6 26 2"/>
-    <path stroke-width="7" d="M352 286c-6 8-14 13-24 15 8 9 17 13 28 11"/>
-    <path stroke-width="8" d="M247 351c-16 24-46 38-77 51-24 10-45 22-59 40M260 351c28 35 67 55 111 70 22 8 40 18 55 31"/>
-  </g>
-  <text x="256" y="432" text-anchor="middle" fill="#4b0758" font-family="Arial, Helvetica, sans-serif" font-size="65" font-weight="600" letter-spacing="5">EVIDA</text>
-  <path d="M130 457h75m102 0h75" stroke="#b58a70" stroke-width="2"/>
-  <text x="256" y="466" text-anchor="middle" fill="#4b0758" font-family="Arial, Helvetica, sans-serif" font-size="22" letter-spacing="10">CLINIC</text>
+  <rect width="512" height="512" fill="#ffffff"/>
+  <text x="256" y="254" text-anchor="middle" fill="#650b79"
+    font-family="Cormorant Garamond, Georgia, 'Times New Roman', serif"
+    font-size="91" font-weight="500" letter-spacing="1">EVIDA</text>
+  <text x="256" y="315" text-anchor="middle" fill="#650b79"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="29" font-weight="400" letter-spacing="10">CLINIC</text>
 </svg>
