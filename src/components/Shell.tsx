@@ -21,14 +21,8 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex min-w-0 items-center gap-2.5">
       <span className="flex h-10 w-[132px] shrink-0 items-center overflow-hidden bg-white">
-        <img src="/evida-logo.svg" alt="" className="h-full w-full object-contain" />
+        <img src="/evida-logo.svg" alt="EVIDA CLINIC" className="h-full w-full object-contain" />
       </span>
-      {!compact && (
-        <span className="min-w-0 leading-tight">
-          <span className="block font-display text-lg font-semibold tracking-[0.08em] text-[#4b0758]">EVIDA</span>
-          <span className="block text-[9px] font-medium tracking-[0.28em] text-ink/50">CLINIC</span>
-        </span>
-      )}
     </div>
   );
 }
