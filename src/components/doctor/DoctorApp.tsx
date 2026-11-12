@@ -393,6 +393,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                       canEdit
                       onEdit={() => setApptModal({ open: true, appt: a })}
                       onComplete={() => changeStatus(a, "completed")}
+                      onConfirm={a.status === "pending_doctor" ? () => changeStatus(a, "scheduled") : undefined}
                       onCancel={() => changeStatus(a, "cancelled")}
                       onDelete={() => remove("appointments", a.id, "appointment")}
                     />
