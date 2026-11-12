@@ -220,7 +220,9 @@ export function Badge({
 }
 
 export const STATUS_TONES: Record<string, string> = {
-  scheduled: "clay",
+  scheduled: "moss",
+  pending_doctor: "clay",
+  pending_client: "clay",
   completed: "moss",
   cancelled: "berry",
   no_show: "neutral",
