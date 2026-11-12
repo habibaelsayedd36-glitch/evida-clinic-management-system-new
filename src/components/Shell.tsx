@@ -224,27 +224,27 @@ export function Shell({
                   </button>
 
                   {bellOpen ? (
-                    <div className="anim-pop absolute end-0 top-12 z-50 w-[min(92vw,22rem)] overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_28px_60px_-30px_rgba(23,18,38,0.65)]">
-                      <div className="flex items-center justify-between border-b border-ink/8 px-4 py-3">
-                        <p className="font-display text-sm font-bold text-ink">Notifications</p>
+                    <div className="anim-pop fixed inset-x-3 top-[4.5rem] z-[60] max-h-[calc(100dvh-5.5rem)] overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_28px_60px_-30px_rgba(23,18,38,0.65)] sm:absolute sm:inset-x-auto sm:end-0 sm:top-12 sm:w-[min(92vw,28rem)] sm:max-h-[min(75vh,38rem)]">
+                      <div className="flex items-center justify-between gap-3 border-b border-ink/8 px-4 py-3">
+                        <p className="font-display text-base font-bold text-ink">Notifications</p>
                         <button
                           type="button"
                           onClick={markAll}
-                          className="text-[11px] font-medium text-iris-600 hover:underline"
+                          className="shrink-0 text-xs font-semibold text-iris-600 hover:underline"
                         >
                           Mark all as read
                         </button>
                       </div>
-                      <div className="max-h-[22rem] overflow-y-auto">
+                      <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto overscroll-contain sm:max-h-[min(65vh,32rem)]">
                         {notifications.length === 0 ? (
-                          <p className="px-4 py-8 text-center text-xs text-ink/50">No notifications yet</p>
+                          <p className="px-4 py-10 text-center text-sm text-ink/60">No notifications yet</p>
                         ) : (
                           notifications.slice(0, 12).map((n) => (
                             <button
                               key={n.id}
                               type="button"
                               onClick={() => void toggleRead(n)}
-                              className={`flex w-full items-start gap-3 border-b border-ink/5 px-4 py-3 text-start transition hover:bg-sand-50 ${
+                              className={`flex w-full items-start gap-3 border-b border-ink/5 px-4 py-4 text-start transition hover:bg-sand-50 ${
                                 n.readAt ? "opacity-60" : ""
                               }`}
                             >
@@ -254,11 +254,11 @@ export function Shell({
                                 }`}
                               />
                               <span className="min-w-0 flex-1">
-                                <span className="block truncate text-[13px] font-semibold text-ink">{n.title}</span>
+                                <span className="block whitespace-normal break-words text-[15px] font-semibold leading-6 text-ink">{n.title}</span>
                                 {n.body ? (
-                                  <span className="mt-0.5 block text-[11px] leading-5 text-ink/60">{n.body}</span>
+                                  <span className="mt-1 block whitespace-pre-wrap break-words text-[14px] leading-6 text-ink/75">{n.body}</span>
                                 ) : null}
-                                <span className="mt-1 block text-[10px] text-ink/40">{fmtRelative(n.createdAt)}</span>
+                                <span className="mt-2 block text-[11px] text-ink/45">{fmtRelative(n.createdAt)}</span>
                               </span>
                             </button>
                           ))
