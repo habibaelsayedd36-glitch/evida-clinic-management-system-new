@@ -96,6 +96,7 @@ CREATE TABLE IF NOT EXISTS "medical_records" (
   "notes" text,
   "created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
+ALTER TABLE "medical_records" ADD COLUMN IF NOT EXISTS "appointment_id" uuid UNIQUE REFERENCES "appointments"("id") ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS "medical_records_client_idx" ON "medical_records" ("client_id");
 CREATE TABLE IF NOT EXISTS "treatment_plans" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
