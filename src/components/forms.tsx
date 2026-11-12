@@ -467,9 +467,9 @@ export function AssignmentForm({
     open,
   );
   const { busy, run } = useSubmit(onDone);
+  const isEditing = Boolean(initial?.id);
 
   async function submit() {
-    const isEditing = Boolean(initial?.id);
     const done = isEditing
       ? await run(
           () => api("PATCH", `/api/assignments/${initial.id}`, { doctorId: form.doctorId, note: form.note }),
