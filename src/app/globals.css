@@ -195,3 +195,16 @@
   header h1 { font-size: 16px !important; }
   .mobile-hide-label { display: none !important; }
 }
+
+
+/* Prevent text and controls from colliding on narrow phone screens. */
+@media (max-width: 767px) {
+  body { overflow-wrap: break-word; }
+  main :where(p, span, a, label, h1, h2, h3, strong, b, small) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  main :where(.flex, .grid) > * { min-width: 0; }
+  main :where(button, a) { max-width: 100%; }
+  [role="dialog"] { box-sizing: border-box; }
+}
