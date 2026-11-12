@@ -7,6 +7,8 @@ import {
   dietMeals,
   dietPlans,
   doseLogs,
+  invoices,
+  invoicePayments,
   medicalRecords,
   medicationDoses,
   notifications,
@@ -455,6 +457,32 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
 
   await db.update(appointments).set(patch).where(eq(appointments.id, apptId));
 
+  // Completing an appointment creates one permanent visit record and one invoice.
+  if (patch.status === "completed" && appt.status !== "completed") {
+    const existingVisit = await db.select({ id: medicalRecords.id }).from(medicalRecords).where(eq(medicalRecords.appointmentId, apptId)).limit(1);
+    if (!existingVisit.length) {
+      await db.insert(medicalRecords).values({
+        clientId: appt.clientId,
+        appointmentId: apptId,
+        doctorId: appt.doctorId,
+        title: `${appt.kind} visit`,
+        visitDate: new Date(appt.scheduledAt).toISOString().slice(0, 10),
+        notes: appt.notes ?? "Visit created automatically when the appointment was completed.",
+      });
+    }
+    const existingInvoice = await db.select({ id: invoices.id }).from(invoices).where(eq(invoices.appointmentId, apptId)).limit(1);
+    if (!existingInvoice.length) {
+      const stamp = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
+      await db.insert(invoices).values({
+        invoiceNumber: `EVD-${stamp}-${apptId.slice(0, 6).toUpperCase()}`,
+        appointmentId: apptId,
+        clientId: appt.clientId,
+        doctorId: appt.doctorId,
+        totalAmount: appt.price ?? 0,
+      });
+    }
+  }
+
   const action = patch.status && patch.status !== appt.status ? String(patch.status) : timeChanged ? "reschedule_requested" : "updated";
   await db.insert(appointmentHistory).values({
     appointmentId: apptId,
@@ -898,4 +926,37 @@ export async function deleteNotification(user: ProfileDTO, id: string) {
   const rowId = requireUuid(id, "Notification");
   await db.delete(notifications).where(and(eq(notifications.id, rowId), eq(notifications.userId, user.id)));
   return { id: rowId };
+}
+
+
+export async function createInvoicePayment(user: ProfileDTO, body: Body) {
+  assert(user.role !== "client", "Only clinic staff can record payments");
+  const invoiceId = requireUuid(body.invoiceId, "Invoice");
+  const rows = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
+  const invoice = rows[0];
+  assert(invoice, "Invoice not found", 404);
+  await assertClientAccess(user, invoice.clientId);
+  const amount = int(body.amount);
+  assert(amount !== null && amount > 0, "Payment amount must be greater than zero");
+  const paidRows = await db.select({ amount: invoicePayments.amount }).from(invoicePayments).where(eq(invoicePayments.invoiceId, invoiceId));
+  const alreadyPaid = paidRows.reduce((sum, payment) => sum + payment.amount, 0);
+  assert(alreadyPaid + amount <= invoice.totalAmount, "Payment exceeds the remaining invoice balance");
+  const method = str(body.method, { max: 30 }) ?? "cash";
+  assert(["cash", "card", "bank_transfer", "wallet", "instapay", "other"].includes(method), "Choose a valid payment method");
+  const [payment] = await db.insert(invoicePayments).values({
+    invoiceId,
+    amount,
+    method,
+    reference: str(body.reference, { max: 120 }),
+    note: str(body.note, { max: 500 }),
+    receivedBy: user.id,
+  }).returning({ id: invoicePayments.id });
+  await notify([invoice.clientId], {
+    title: "Payment received",
+    body: `EGP ${amount.toLocaleString("en-US")} was recorded toward invoice ${invoice.invoiceNumber}.`,
+    kind: "payment",
+    actorId: user.id,
+    clientId: invoice.clientId,
+  });
+  return { id: payment.id, invoiceId, paidTotal: alreadyPaid + amount, remaining: invoice.totalAmount - alreadyPaid - amount };
 }
