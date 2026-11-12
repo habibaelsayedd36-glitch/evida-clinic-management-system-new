@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 
 export default function PwaInstallGuide() {
   const [show, setShow] = useState(false);
@@ -23,7 +23,7 @@ export default function PwaInstallGuide() {
 
   if (!show) return null;
 
-  const stepStyle: React.CSSProperties = {
+  const stepStyle: CSSProperties = {
     display: "flex",
     alignItems: "flex-start",
     gap: 12,
@@ -32,7 +32,7 @@ export default function PwaInstallGuide() {
     background: "#f7f5fb",
     minWidth: 0,
   };
-  const stepNumberStyle: React.CSSProperties = {
+  const stepNumberStyle: CSSProperties = {
     flex: "0 0 28px",
     width: 28,
     height: 28,
@@ -44,7 +44,7 @@ export default function PwaInstallGuide() {
     fontWeight: 700,
     lineHeight: 1,
   };
-  const stepTextStyle: React.CSSProperties = {
+  const stepTextStyle: CSSProperties = {
     flex: "1 1 0%",
     minWidth: 0,
     overflowWrap: "break-word",
