@@ -1228,6 +1228,7 @@ export function AppointmentRow({
   onEdit,
   onCancel,
   onComplete,
+  onConfirm,
   onDelete,
 }: {
   appt: AppointmentDTO;
@@ -1237,6 +1238,7 @@ export function AppointmentRow({
   onEdit?: () => void;
   onCancel?: () => void;
   onComplete?: () => void;
+  onConfirm?: () => void;
   onDelete?: () => void;
 }) {
   const past = new Date(appt.scheduledAt).getTime() < Date.now();
@@ -1265,12 +1267,22 @@ export function AppointmentRow({
         <Badge tone={STATUS_TONES[appt.status] ?? "neutral"}>{STATUS_LABELS[appt.status] ?? appt.status}</Badge>
         {canEdit ? (
           <>
+            {appt.status === "pending_doctor" && onConfirm ? (
+              <Button size="sm" variant="primary" onClick={onConfirm} type="button">
+                Confirm
+              </Button>
+            ) : null}
+            {appt.status === "pending_client" && onConfirm ? (
+              <Button size="sm" variant="primary" onClick={onConfirm} type="button">
+                Confirm new time
+              </Button>
+            ) : null}
             {appt.status === "scheduled" && onComplete ? (
               <Button size="sm" variant="soft" onClick={onComplete} type="button">
                 Complete
               </Button>
             ) : null}
-            {appt.status === "scheduled" && onCancel ? (
+            {["scheduled", "pending_doctor", "pending_client"].includes(appt.status) && onCancel ? (
               <Button size="sm" variant="outline" onClick={onCancel} type="button">
                 Cancel
               </Button>
