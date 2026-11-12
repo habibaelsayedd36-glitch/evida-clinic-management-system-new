@@ -242,7 +242,7 @@ export const APPOINTMENT_KINDS = Object.keys(KIND_LABELS).filter(
   (k) => !["active", "paused", "finished", "draft"].includes(k),
 );
 
-export const APPOINTMENT_STATUSES = ["scheduled", "completed", "cancelled", "no_show"];
+export const APPOINTMENT_STATUSES = ["pending_doctor", "scheduled", "pending_client", "not_confirmed", "completed", "cancelled", "no_show"];
 export const PLAN_STATUSES = ["active", "paused", "finished"];
 export const MEAL_TIMES = ["breakfast", "snack1", "lunch", "snack2", "dinner"];
 export const DOSE_TIMES = ["morning", "noon", "evening", "night"];
