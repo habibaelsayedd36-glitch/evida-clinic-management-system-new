@@ -40,16 +40,16 @@ export async function GET(req: NextRequest) {
         [
           "Normal Diet",
           "Clinical nutrition assessment, InBody body-composition scan and a personalized weekly meal plan with Dr. Mohab or Dr. Omnia.",
-          "Includes full InBody body-composition and metabolic assessment plus a customized weekly meal plan in the app. Promotional price: 500 EGP (original 1,000 EGP). Offer deadline: 30/11/2026.",
+          "Includes clinical nutrition assessment, full InBody body-composition and metabolic scan, review of goals and measurements, and a customized weekly meal plan in the app with follow-up updates as clinically appropriate. Supervised by Dr. Mohab or Dr. Omnia. Promotional price: 500 EGP (original 1,000 EGP). Offer deadline: 30/11/2026.",
           "UNCUT – Semaglutide",
           "GLP-1 receptor agonist protocol. Offered as a single package option or a full package, subject to individual medical assessment.",
-          "Single option: 10 Units — 1,500 EGP (original 2,000 EGP). Full package: 500 Units — 20,000 EGP. Clinical assessment, eligibility, exact product concentration and prescribed dose must be confirmed by the treating physician. Package units must not be interpreted as a dose.",
+          "CLASSIFICATION: GLP-1 receptor agonist. MECHANISM: activates GLP-1 receptors involved in appetite and satiety signalling, may slow gastric emptying, and supports glucose-dependent insulin response. CLINICAL REVIEW: suitability, contraindications, product identity, concentration and prescribed dose must be assessed and confirmed by the treating physician. SUPERVISION: nutrition plan and follow-up measurements may be incorporated according to the clinician's plan. PRICING: 10-Unit package — 1,500 EGP (original 2,000 EGP); 500-Unit full package — 20,000 EGP. The package unit count is not a medication dose. No specific weight-loss result is guaranteed.",
           "PROCUT – Tirzepatide",
           "Dual GIP and GLP-1 receptor agonist protocol. Offered as a single package option or a full package, subject to individual medical assessment.",
-          "Single option: 10 Units — 2,500 EGP (original 3,000 EGP). Full package: 200 Units — 30,000 EGP. Clinical assessment, eligibility, exact product concentration and prescribed dose must be confirmed by the treating physician. Package units must not be interpreted as a dose.",
+          "CLASSIFICATION: dual GIP and GLP-1 receptor agonist. MECHANISM: acts on GIP and GLP-1 pathways involved in glucose regulation, appetite and satiety. CLINICAL REVIEW: suitability, contraindications, product identity, concentration and prescribed dose must be assessed and confirmed by the treating physician. SUPERVISION: individualized nutrition support and follow-up measurements may be included in the care plan. PRICING: 10-Unit package — 2,500 EGP (original 3,000 EGP); 200-Unit full package — 30,000 EGP. The package unit count is not a medication dose. No specific weight-loss result is guaranteed.",
           "PROCUT PREMIUM – Retatrutide",
           "Investigational triple-receptor medicine. Do not offer or administer as a routine clinic treatment unless its regulatory status and lawful availability have been verified by the clinic's medical director.",
-          "Draft pricing supplied for internal review only: 10 Units — 3,000 EGP (original 3,500 EGP); full package 200 Units — 35,000 EGP. Retatrutide remains investigational; this entry is inactive and must not be presented as an available treatment. Medical director and regulatory review required."
+          "CLASSIFICATION: investigational triple-receptor candidate targeting GIP, GLP-1 and glucagon receptors. IMPORTANT REGULATORY NOTE: retatrutide is investigational and is not an approved routine weight-management medicine. This record is inactive and for internal reference only; it must not be offered, booked, prescribed or administered as an available clinic treatment. Draft prices for internal review only: 10-Unit package — 3,000 EGP (original 3,500 EGP); 200-Unit full package — 35,000 EGP. Medical director and regulatory review required before any public use."
         ]
       );
     }
