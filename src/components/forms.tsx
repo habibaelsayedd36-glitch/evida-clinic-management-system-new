@@ -464,7 +464,8 @@ export function AssignmentForm({
   const { busy, run } = useSubmit(onDone);
 
   async function submit() {
-    const done = initial
+    const isEditing = Boolean(initial?.id);
+    const done = isEditing
       ? await run(
           () => api("PATCH", `/api/assignments/${initial.id}`, { doctorId: form.doctorId, note: form.note }),
           "Assignment updated",
@@ -477,7 +478,7 @@ export function AssignmentForm({
     <Modal
       open={open}
       onClose={onClose}
-      title={initial ? "Change the responsible doctor" : "Link a client to a doctor"}
+      title={isEditing ? "Change the responsible doctor" : "Link a client to a doctor"}
       subtitle="The doctor gets access to this client's data as soon as the link exists"
       footer={
         <>
