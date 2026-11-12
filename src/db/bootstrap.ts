@@ -7,8 +7,6 @@ import {
   dietMeals,
   dietPlans,
   doseLogs,
-  invoices,
-  invoicePayments,
   medicalRecords,
   medicationDoses,
   notifications,
