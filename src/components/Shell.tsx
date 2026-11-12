@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { api, fmtRelative } from "@/lib/client";
 import { ROLE_LABELS, type NotificationDTO, type ProfileDTO } from "@/lib/types";
-import { Avatar, Badge } from "./ui";
+import { Avatar, Badge, Modal } from "./ui";
 
 export type NavItem = { id: string; label: string; icon: LucideIcon; count?: number };
 
@@ -56,6 +56,7 @@ export function Shell({
   const router = useRouter();
   const [mobileNav, setMobileNav] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState<NotificationDTO | null>(null);
   const bellRef = useRef<HTMLDivElement>(null);
 
   const unread = notifications.filter((n) => !n.readAt).length;
@@ -119,7 +120,8 @@ export function Shell({
       target = nav.find((item) => ["clients", "profile"].includes(item.id))?.id;
     }
 
-    onNavigate(target ?? nav.find((item) => item.id === "notifications")?.id ?? nav[0]?.id ?? active);
+    if (target) onNavigate(target);
+    else setSelectedNotification(n);
   }
 
   async function markAll() {
@@ -329,6 +331,30 @@ export function Shell({
           </footer>
         </div>
       </div>
+
+      {selectedNotification ? (
+        <Modal
+          open
+          onClose={() => setSelectedNotification(null)}
+          title={selectedNotification.title}
+          subtitle={`${fmtRelative(selectedNotification.createdAt)} · ${selectedNotification.kind}`}
+        >
+          <div className="space-y-4">
+            <p className="whitespace-pre-wrap break-words text-sm leading-7 text-ink/75">
+              {selectedNotification.body || "There are no additional details for this notification."}
+            </p>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedNotification(null)}
+                className="rounded-xl bg-iris-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-iris-800"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </Modal>
+      ) : null}
     </div>
   );
 }
