@@ -41,7 +41,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   appointments: { title: "My appointments", subtitle: "Book, confirm or request a different appointment time" },
   services: { title: "EVIDA Services", subtitle: "Nutrition and weight-management services with clinic pricing" },
   diet: { title: "Diet plan", subtitle: "The daily meals your doctor wrote for you" },
-  treatment: { title: "Treatment plan", subtitle: "Plans, sessions and daily doses" },
+  treatment: { title: "Treatment protocol", subtitle: "Your assigned protocol, sessions and dose schedule" },
   records: { title: "Medical records", subtitle: "Diagnosis and measurements from your visits" },
   profile: { title: "My profile", subtitle: "Your data and measurements — visible only to you and your care team" },
   notifications: { title: "Notifications", subtitle: "Alerts from the clinic and your care team" },
@@ -176,14 +176,14 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                 icon={<Scale className="h-5 w-5" />}
               />
               <StatTile label="Body mass index" value={value ?? "—"} hint={bmiLabel(value)} tone="clay" icon={<HeartPulse className="h-5 w-5" />} />
-              <StatTile label="Active doses" value={activeDoses.length} hint={`${data.doseLogs.length} logged doses`} tone="moss" icon={<Pill className="h-5 w-5" />} />
+              <StatTile label="Scheduled doses" value={activeDoses.length} hint={`${data.doseLogs.length} logged doses`} tone="moss" icon={<Pill className="h-5 w-5" />} />
               <StatTile label="Past visits" value={past.length} hint={`${data.records.length} medical records`} icon={<CalendarDays className="h-5 w-5" />} />
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
                 <SectionHeader
-                  title="Today's doses"
+                  title="Today's dose schedule"
                   subtitle="Tap the button once you take the dose"
                   icon={<Pill className="h-4 w-4" />}
                   action={
@@ -201,7 +201,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                       return (
                         <div key={dose.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                           <div className="min-w-0">
-                            <p className="truncate text-[13px] font-semibold text-ink">{dose.medicine}</p>
+                            <p className="truncate text-[13px] font-semibold text-ink">{dose.dosage || "Dose"}</p>
                             <p className="mt-0.5 text-[11px] text-ink/55">
                               {dose.dosage ?? "—"} · {dose.frequency ?? "—"} ·{" "}
                               {dose.timeOfDay ? TIME_LABELS[dose.timeOfDay] ?? dose.timeOfDay : "—"}
@@ -384,7 +384,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                 <div className="max-h-72 divide-y divide-ink/6 overflow-y-auto">
                   {data.doseLogs.slice(0, 30).map((log) => (
                     <div key={log.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
-                      <p className="text-[12px] font-medium text-ink">{log.medicine ?? "Dose"}</p>
+                      <p className="text-[12px] font-medium text-ink">{"Dose"}</p>
                       <div className="flex items-center gap-3">
                         <span className="text-[11px] text-ink/50">{fmtDateTime(log.takenAt)}</span>
                         <button
