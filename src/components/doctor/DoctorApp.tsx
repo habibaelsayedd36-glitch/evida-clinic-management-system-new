@@ -108,7 +108,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
   const upcoming = useMemo(
     () =>
       data.appointments
-        .filter((a) => a.status === "scheduled" && new Date(a.scheduledAt) >= new Date())
+        .filter((a) => ["scheduled", "pending_doctor", "pending_client"].includes(a.status) && new Date(a.scheduledAt) >= new Date())
         .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt)),
     [data.appointments],
   );
@@ -208,6 +208,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                       canEdit
                       onEdit={() => setApptModal({ open: true, appt: a })}
                       onComplete={() => changeStatus(a, "completed")}
+                      onConfirm={a.status === "pending_doctor" ? () => changeStatus(a, "scheduled") : undefined}
                       onCancel={() => changeStatus(a, "cancelled")}
                       onDelete={() => remove("appointments", a.id, "appointment")}
                     />
@@ -357,7 +358,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                   className="rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm"
                 >
                   <option value="all">All statuses</option>
-                  {["scheduled", "completed", "cancelled", "no_show"].map((s) => (
+                  {["pending_doctor", "pending_client", "scheduled", "completed", "cancelled", "no_show"].map((s) => (
                     <option key={s} value={s}>
                       {STATUS_LABELS[s]}
                     </option>
