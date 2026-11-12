@@ -192,14 +192,14 @@ export function Shell({
                 {subtitle ? <p className="mt-0.5 truncate text-xs text-ink/55">{subtitle}</p> : null}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
                 <button
                   type="button"
                   onClick={() => void onRefresh()}
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-ink/10 bg-white px-2 py-2 text-xs font-medium text-ink/65 transition hover:border-iris-300 hover:text-iris-700 sm:px-2.5"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
-                  Refresh
+                  <span className="hidden sm:inline">Refresh</span>
                 </button>
 
                 <div className="relative" ref={bellRef}>
