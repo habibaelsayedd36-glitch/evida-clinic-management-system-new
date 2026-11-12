@@ -34,4 +34,6 @@ jobs:
         run: npm run typecheck
 
       - name: Production build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/evida_ci
         run: npm run build
