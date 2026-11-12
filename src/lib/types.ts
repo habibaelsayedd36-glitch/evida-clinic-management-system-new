@@ -216,6 +216,7 @@ export const STATUS_LABELS: Record<string, string> = {
   scheduled: "Confirmed",
   pending_doctor: "Awaiting doctor confirmation",
   pending_client: "Awaiting client confirmation",
+  not_confirmed: "Not confirmed by doctor",
   completed: "Completed",
   cancelled: "Cancelled",
   no_show: "No show",
