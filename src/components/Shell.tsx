@@ -19,23 +19,14 @@ export type NavItem = { id: string; label: string; icon: LucideIcon; count?: num
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="relative grid h-10 w-10 place-items-center rounded-xl bg-iris-700 text-sand-50 shadow-[0_10px_24px_-14px_rgba(23,18,38,0.9)]">
-        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
-          <path
-            d="M3 13.5h3.2l1.8-4.3 2.6 8.1 2.3-5.4 1.4 2.6H21"
-            stroke="currentColor"
-            strokeWidth="1.9"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <circle cx="18.4" cy="6.2" r="2.2" fill="currentColor" opacity="0.55" />
-        </svg>
+    <div className="flex min-w-0 items-center gap-2.5">
+      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#fbf8f7]">
+        <img src="/icon.svg" alt="" className="h-full w-full object-cover" />
       </span>
       {!compact && (
-        <span className="leading-tight">
-          <span className="block font-display text-lg font-extrabold tracking-tight text-ink">EVIDA</span>
-          <span className="block text-[10px] font-medium tracking-[0.18em] text-ink/45">CLINIC OS</span>
+        <span className="min-w-0 leading-tight">
+          <span className="block font-display text-lg font-semibold tracking-[0.08em] text-[#4b0758]">EVIDA</span>
+          <span className="block text-[9px] font-medium tracking-[0.28em] text-ink/50">CLINIC</span>
         </span>
       )}
     </div>
@@ -190,9 +181,9 @@ export function Shell({
           </div>
         ) : null}
 
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
           <header className="sticky top-0 z-40 border-b border-ink/8 bg-sand-50/85 backdrop-blur-md">
-            <div className="flex flex-wrap items-center gap-3 px-4 py-3.5 sm:px-6">
+            <div className="flex flex-wrap items-center gap-2 px-3 py-3 sm:gap-3 sm:px-6 sm:py-3.5">
               <button
                 type="button"
                 onClick={() => setMobileNav(true)}
@@ -282,8 +273,8 @@ export function Shell({
             </div>
           </header>
 
-          <main className="flex-1 px-4 py-5 sm:px-6 sm:py-6">
-            <div key={active} className="anim-rise mx-auto w-full max-w-[1180px]">
+          <main className="min-w-0 flex-1 px-3 py-4 sm:px-6 sm:py-6">
+            <div key={active} className="anim-rise mx-auto min-w-0 w-full max-w-[1180px]">
               {children}
             </div>
           </main>
