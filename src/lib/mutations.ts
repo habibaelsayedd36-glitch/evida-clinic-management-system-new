@@ -405,7 +405,7 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
       const nextStatus = str(body.status, { max: 30 }) ?? appt.status;
       if (nextStatus === "scheduled" && appt.status === "pending_doctor") {
         patch.status = "scheduled";
-      } else if (["completed", "cancelled", "no_show"].includes(nextStatus)) {
+      } else if (["completed", "cancelled", "no_show", "not_confirmed"].includes(nextStatus)) {
         patch.status = nextStatus;
       } else {
         assert(nextStatus === appt.status, "Confirm the client's request or suggest a different date and time");
@@ -444,13 +444,14 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
   await notify(recipients, {
     title:
       action === "cancelled" ? "Appointment cancelled" :
+      action === "not_confirmed" ? "Appointment not confirmed" :
       action === "pending_doctor" ? "Reschedule request from client" :
       action === "pending_client" ? "Doctor suggested a new appointment time" :
       action === "scheduled" ? "Appointment confirmed" : "Appointment updated",
     body:
       timeChanged
         ? `${user.role === "client" ? "Client requested" : "Doctor suggested"}: ${fmtWhen(requestedTime as Date)}. ${user.role === "client" ? "Please confirm or suggest another time." : "Please confirm this time or request another change."}`
-        : action === "scheduled" ? "The appointment time has been confirmed." : `Appointment status is now: ${String(patch.status ?? appt.status)}`,
+        : action === "scheduled" ? "The appointment time has been confirmed." : action === "not_confirmed" ? "The doctor could not confirm this appointment. Please contact the clinic or request another time." : `Appointment status is now: ${String(patch.status ?? appt.status)}`,
     kind: "appointment",
     actorId: user.id,
     clientId: appt.clientId,
