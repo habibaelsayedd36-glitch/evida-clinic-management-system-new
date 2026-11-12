@@ -57,7 +57,7 @@ export default function PwaInstallGuide() {
     minWidth: 0,
     overflowWrap: "anywhere",
     wordBreak: "normal",
-    textAlign: "right",
+    textAlign: "left",
   };
 
   return (
@@ -79,7 +79,7 @@ export default function PwaInstallGuide() {
         role="dialog"
         aria-modal="true"
         aria-labelledby="evida-install-title"
-        dir="rtl"
+        dir="ltr"
         style={{
           width: "min(100%, 420px)",
           maxHeight:
@@ -114,7 +114,7 @@ export default function PwaInstallGuide() {
                 color: "#6c4ad4",
                 fontWeight: 700,
                 letterSpacing: 1,
-                textAlign: "right",
+                textAlign: "left",
               }}
             >
               EVIDA CLINIC
@@ -125,11 +125,11 @@ export default function PwaInstallGuide() {
                 margin: "7px 0 6px",
                 fontSize: "clamp(19px, 5vw, 23px)",
                 lineHeight: 1.4,
-                textAlign: "right",
+                textAlign: "left",
                 overflowWrap: "anywhere",
               }}
             >
-              ثبّتي EVIDA على الآيفون
+              Install EVIDA on your iPhone
             </h2>
             <p
               style={{
@@ -137,15 +137,15 @@ export default function PwaInstallGuide() {
                 fontSize: 13,
                 color: "#686477",
                 lineHeight: 1.7,
-                textAlign: "right",
+                textAlign: "left",
               }}
             >
-              ضيفي التطبيق على الشاشة الرئيسية عشان تفتحيه بسهولة في أي وقت. التثبيت مجاني ومش محتاج App Store.
+              Add EVIDA to your Home Screen for quick access. It is free and does not require the App Store.
             </p>
           </div>
           <button
             type="button"
-            aria-label="إغلاق التعليمات"
+            aria-label="Close instructions"
             onClick={closeGuide}
             style={{
               width: 36,
@@ -174,11 +174,11 @@ export default function PwaInstallGuide() {
               color: "#714900",
               fontSize: 13,
               lineHeight: 1.7,
-              textAlign: "right",
+              textAlign: "left",
               overflowWrap: "anywhere",
             }}
           >
-            افتحي نفس الرابط من متصفح Safari الأول؛ لأن اختيار إضافة التطبيق للشاشة الرئيسية متاح من خلال Safari على الآيفون.
+            First, open this same link in Safari. The Add to Home Screen option is available in Safari on iPhone.
           </p>
         ) : null}
 
@@ -191,10 +191,10 @@ export default function PwaInstallGuide() {
           }}
         >
           <div style={stepStyle}>
-            <span style={stepNumberStyle}>١</span>
+            <span style={stepNumberStyle}>1</span>
             <div style={stepTextStyle}>
               <strong style={{ display: "block", fontSize: 14, lineHeight: 1.5 }}>
-                اضغطي على زر المشاركة Share
+                Tap the Share button
               </strong>
               <span
                 style={{
@@ -205,16 +205,16 @@ export default function PwaInstallGuide() {
                   lineHeight: 1.7,
                 }}
               >
-                هتلاقيه على شكل مربع وسهم لفوق في شريط Safari.
+                Tap the square icon with the upward arrow in Safari.
               </span>
             </div>
           </div>
 
           <div style={stepStyle}>
-            <span style={stepNumberStyle}>٢</span>
+            <span style={stepNumberStyle}>2</span>
             <div style={stepTextStyle}>
               <strong style={{ display: "block", fontSize: 14, lineHeight: 1.5 }}>
-                اختاري Add to Home Screen
+                Choose Add to Home Screen
               </strong>
               <span
                 style={{
@@ -225,16 +225,16 @@ export default function PwaInstallGuide() {
                   lineHeight: 1.7,
                 }}
               >
-                لو الاختيار مش ظاهر، انزلي لتحت في قائمة المشاركة لحد ما تلاقيه.
+                If you do not see it, scroll down in the Share menu.
               </span>
             </div>
           </div>
 
           <div style={stepStyle}>
-            <span style={stepNumberStyle}>٣</span>
+            <span style={stepNumberStyle}>3</span>
             <div style={stepTextStyle}>
               <strong style={{ display: "block", fontSize: 14, lineHeight: 1.5 }}>
-                اضغطي Add للتأكيد
+                Tap Add to confirm
               </strong>
               <span
                 style={{
@@ -245,7 +245,7 @@ export default function PwaInstallGuide() {
                   lineHeight: 1.7,
                 }}
               >
-                كده أيقونة EVIDA هتظهر على الشاشة الرئيسية وتقدري تفتحي التطبيق منها مباشرة.
+                The EVIDA icon will appear on your iPhone Home Screen. Tap it anytime to open the app.
               </span>
             </div>
           </div>
@@ -271,7 +271,7 @@ export default function PwaInstallGuide() {
             boxSizing: "border-box",
           }}
         >
-          تمام، فهمت
+          Got it
         </button>
       </section>
     </div>
