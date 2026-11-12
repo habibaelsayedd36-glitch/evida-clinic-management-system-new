@@ -1,43 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X, Share, PlusSquare, Smartphone } from "lucide-react";
 
 export default function PwaInstallGuide() {
   const [show, setShow] = useState(false);
-  const [browser, setBrowser] = useState("Safari");
+  const [isSafari, setIsSafari] = useState(true);
 
   useEffect(() => {
     const ua = window.navigator.userAgent;
     const ios = /iPhone|iPad|iPod/i.test(ua);
     const standalone = window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
-    if (ios && !standalone) {
-      setBrowser(/CriOS|Chrome/i.test(ua) ? "another browser" : "Safari");
-      setShow(true);
-    }
+    setIsSafari(/Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua));
+    setShow(ios && !standalone);
   }, []);
 
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-end justify-center bg-ink/45 p-3 sm:items-center">
-      <section role="dialog" aria-modal="true" aria-labelledby="evida-install-title" className="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-iris-100 text-iris-700"><Smartphone className="h-6 w-6" /></div>
-            <div><h2 id="evida-install-title" className="text-base font-bold text-ink">Add EVIDA to your iPhone</h2><p className="mt-1 text-xs text-ink/55">Install it on your Home Screen — free, no App Store needed.</p></div>
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(20, 16, 35, .58)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+      <section role="dialog" aria-modal="true" aria-labelledby="evida-install-title" style={{ width: "100%", maxWidth: 390, maxHeight: "88dvh", overflowY: "auto", borderRadius: 22, background: "#fff", color: "#252238", padding: 20, boxShadow: "0 20px 60px rgba(0,0,0,.25)", fontFamily: "Arial, sans-serif", lineHeight: 1.45 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+          <div>
+            <div style={{ fontSize: 12, color: "#6c4ad4", fontWeight: 700, letterSpacing: 1 }}>EVIDA CLINIC</div>
+            <h2 id="evida-install-title" style={{ margin: "6px 0 4px", fontSize: 21, lineHeight: 1.25 }}>Install EVIDA on your iPhone</h2>
+            <p style={{ margin: 0, fontSize: 13, color: "#686477" }}>Add EVIDA to your Home Screen for quick access. It is free and does not need the App Store.</p>
           </div>
-          <button type="button" onClick={() => setShow(false)} aria-label="Close" className="rounded-full p-2 text-ink/45 hover:bg-sand-100"><X className="h-4 w-4" /></button>
+          <button type="button" aria-label="Close" onClick={() => setShow(false)} style={{ flex: "0 0 auto", border: 0, borderRadius: 20, background: "#f1eff7", width: 34, height: 34, fontSize: 21, cursor: "pointer" }}>×</button>
         </div>
-        {browser !== "Safari" ? <div className="mt-4 rounded-xl bg-clay-100 p-3 text-xs leading-5 text-ink">You opened EVIDA in another browser. Copy this page link, open Safari, and paste it into the address bar before continuing.</div> : null}
-        <ol className="mt-5 space-y-3">
-          <li className="flex gap-3 rounded-2xl bg-sand-50 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-iris-100 text-sm font-bold text-iris-700">1</span><div><p className="text-sm font-semibold text-ink">Tap the Share button</p><p className="mt-1 text-xs leading-5 text-ink/60">In Safari, tap the square icon with the upward arrow at the bottom of the screen. On some iPads it is at the top.</p><Share className="mt-2 h-6 w-6 text-iris-600" /></div></li>
-          <li className="flex gap-3 rounded-2xl bg-sand-50 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-iris-100 text-sm font-bold text-iris-700">2</span><div><p className="text-sm font-semibold text-ink">Choose Add to Home Screen</p><p className="mt-1 text-xs leading-5 text-ink/60">Scroll down in the Share menu if you cannot see it.</p><PlusSquare className="mt-2 h-6 w-6 text-iris-600" /></div></li>
-          <li className="flex gap-3 rounded-2xl bg-sand-50 p-3"><span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-iris-100 text-sm font-bold text-iris-700">3</span><div><p className="text-sm font-semibold text-ink">Tap Add</p><p className="mt-1 text-xs leading-5 text-ink/60">EVIDA will appear as an app icon on your iPhone. Open it from there next time.</p></div></li>
+        {!isSafari ? <p style={{ margin: "14px 0", padding: 11, borderRadius: 10, background: "#fff4e5", color: "#714900", fontSize: 13 }}>First, open this same link in Safari. The installation option is available from Safari on iPhone.</p> : null}
+        <ol style={{ margin: "18px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 12 }}>
+          <li style={{ display: "flex", gap: 11, padding: 12, borderRadius: 13, background: "#f7f5fb" }}>
+            <b style={{ flex: "0 0 27px", height: 27, borderRadius: 20, background: "#e9e2fb", color: "#5633b6", display: "grid", placeItems: "center" }}>1</b>
+            <div><b style={{ display: "block", fontSize: 14 }}>Tap Share</b><span style={{ display: "block", marginTop: 3, color: "#686477", fontSize: 12 }}>Tap the square with the upward arrow at the bottom of Safari.</span></div>
+          </li>
+          <li style={{ display: "flex", gap: 11, padding: 12, borderRadius: 13, background: "#f7f5fb" }}>
+            <b style={{ flex: "0 0 27px", height: 27, borderRadius: 20, background: "#e9e2fb", color: "#5633b6", display: "grid", placeItems: "center" }}>2</b>
+            <div><b style={{ display: "block", fontSize: 14 }}>Choose Add to Home Screen</b><span style={{ display: "block", marginTop: 3, color: "#686477", fontSize: 12 }}>Scroll down in the Share menu if you do not see it.</span></div>
+          </li>
+          <li style={{ display: "flex", gap: 11, padding: 12, borderRadius: 13, background: "#f7f5fb" }}>
+            <b style={{ flex: "0 0 27px", height: 27, borderRadius: 20, background: "#e9e2fb", color: "#5633b6", display: "grid", placeItems: "center" }}>3</b>
+            <div><b style={{ display: "block", fontSize: 14 }}>Tap Add</b><span style={{ display: "block", marginTop: 3, color: "#686477", fontSize: 12 }}>The EVIDA icon will appear on your iPhone Home Screen.</span></div>
+          </li>
         </ol>
-        <button type="button" onClick={() => setShow(false)} className="mt-5 w-full rounded-xl bg-iris-700 px-4 py-3 text-sm font-semibold text-white hover:bg-iris-800">Got it</button>
-        <p className="mt-3 text-center text-[11px] text-ink/45">This is a one-time setup. Your account and appointments stay the same.</p>
+        <button type="button" onClick={() => setShow(false)} style={{ display: "block", width: "100%", minHeight: 48, marginTop: 18, padding: "12px 16px", border: 0, borderRadius: 12, background: "#6c4ad4", color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", position: "sticky", bottom: 0 }}>Close instructions</button>
       </section>
     </div>
   );
