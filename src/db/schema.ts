@@ -117,6 +117,7 @@ export const medicalRecords = pgTable(
     clientId: uuid("client_id")
       .notNull()
       .references(() => profiles.id, { onDelete: "cascade" }),
+    appointmentId: uuid("appointment_id").unique().references(() => appointments.id, { onDelete: "set null" }),
     doctorId: uuid("doctor_id").references(() => profiles.id, { onDelete: "set null" }),
     title: text("title").notNull(),
     visitDate: date("visit_date").notNull(),
