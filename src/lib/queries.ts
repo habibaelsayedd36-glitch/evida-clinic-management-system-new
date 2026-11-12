@@ -384,9 +384,7 @@ export async function loadScopedData(user: ProfileDTO): Promise<Bootstrap> {
     appointmentsUpcoming: upcoming.length,
     completed: appointmentList.filter((a) => a.status === "completed").length,
     cancelled: appointmentList.filter((a) => a.status === "cancelled").length,
-    revenue: appointmentList
-      .filter((a) => a.status === "completed")
-      .reduce((sum, a) => sum + (a.price ?? 0), 0),
+    revenue: paymentRows.reduce((sum, payment) => sum + payment.amount, 0),
     activePlans: planRows.filter((p) => p.status === "active").length,
     activeDietPlans: dietRows.filter((d) => d.status === "active").length,
     records: recordRows.length,
