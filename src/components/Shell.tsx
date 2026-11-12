@@ -177,22 +177,22 @@ export function Shell({
 
         <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
           <header className="sticky top-0 z-40 border-b border-ink/8 bg-sand-50/85 backdrop-blur-md">
-            <div className="flex min-w-0 flex-nowrap items-center gap-2 px-2.5 py-3 sm:gap-3 sm:px-5 sm:py-3.5 lg:px-6 xl:px-8">
+            <div className="grid min-w-0 grid-cols-[36px_minmax(0,1fr)] items-start gap-x-2 gap-y-3 px-3 py-4 sm:flex sm:items-center sm:gap-3 sm:px-5 sm:py-4 lg:px-6 xl:px-8">
               <button
                 type="button"
                 onClick={() => setMobileNav(true)}
-                className="shrink-0 rounded-lg border border-ink/10 bg-white p-2 text-ink/60 lg:hidden"
+                className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink/10 bg-white p-0 text-ink/60 lg:hidden"
                 aria-label="Open menu"
               >
                 <Menu className="h-4 w-4" />
               </button>
 
-              <div className="min-w-0 flex-1">
-                <h1 className="min-w-0 whitespace-normal break-words font-display text-[15px] font-bold leading-tight text-ink sm:text-xl">{title}</h1>
-                {subtitle ? <p className="mt-1 line-clamp-2 whitespace-normal break-words text-[10px] leading-snug text-ink/55 sm:text-xs">{subtitle}</p> : null}
+              <div className="min-w-0 self-center sm:flex-1">
+                <h1 className="min-w-0 whitespace-normal break-words font-display text-base font-bold leading-snug text-ink sm:text-xl sm:leading-snug">{title}</h1>
+                {subtitle ? <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-ink/60 sm:text-sm">{subtitle}</p> : null}
               </div>
 
-              <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+              <div className="col-span-2 flex min-w-0 items-center justify-end gap-2 sm:col-auto sm:ml-auto sm:shrink-0">
                 <button
                   type="button"
                   onClick={() => void onRefresh()}
