@@ -17,9 +17,10 @@ import {
   Check,
   Scale,
   MessageCircle,
+  Printer,
 } from "lucide-react";
 import { api, bmi, bmiLabel, fmtDate, fmtDateTime, fmtRelative, fmtTime, isSameDay, useBootstrap } from "@/lib/client";
-import { TIME_LABELS, type AppointmentDTO, type Bootstrap } from "@/lib/types";
+import { TIME_LABELS, type AppointmentDTO, type Bootstrap, type InvoiceDTO } from "@/lib/types";
 import { Avatar, Badge, Bar, Button, Card, EmptyState, Progress, SectionHeader, StatTile } from "@/components/ui";
 import { Shell, type NavItem } from "@/components/Shell";
 import { AppointmentForm, ProfileForm, useSubmit } from "@/components/forms";
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { id: "diet", label: "Diet plan", icon: Salad },
   { id: "treatment", label: "Treatment", icon: ClipboardList },
   { id: "records", label: "Medical records", icon: Stethoscope },
+  { id: "invoices", label: "My invoices", icon: ClipboardList },
   { id: "profile", label: "My profile", icon: UserCog },
   { id: "notifications", label: "Notifications", icon: Bell },
 ];
@@ -43,6 +45,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   diet: { title: "Diet plan", subtitle: "The daily meals your doctor wrote for you" },
   treatment: { title: "Treatment protocol", subtitle: "Your assigned protocol, sessions and dose schedule" },
   records: { title: "Medical records", subtitle: "Diagnosis and measurements from your visits" },
+  invoices: { title: "My invoices", subtitle: "View your invoices, payment history and remaining balance" },
   profile: { title: "My profile", subtitle: "Your data and measurements — visible only to you and your care team" },
   notifications: { title: "Notifications", subtitle: "Alerts from the clinic and your care team" },
 };
@@ -67,12 +70,30 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   );
   const next = upcoming[0] ?? null;
   const past = data.appointments.filter((a) => new Date(a.scheduledAt) < new Date());
+  const myInvoices = data.invoices.filter((invoice) => invoice.clientId === me.id);
   const activePlans = data.plans.filter((p) => p.status === "active");
   const activeDiets = data.dietPlans.filter((d) => d.status === "active");
   const activeDoses = data.doses.filter((d) => d.active);
   const value = bmi(me.heightCm, me.weightKg);
   const weightToTarget =
     me.weightKg && me.targetWeightKg ? Math.max(0, Math.round((me.weightKg - me.targetWeightKg) * 10) / 10) : null;
+
+  function printInvoice(invoice: InvoiceDTO) {
+    const popup = window.open("", "_blank", "width=900,height=700");
+    if (!popup) {
+      window.alert("Please allow pop-ups to print your invoice.");
+      return;
+    }
+    const escapeHtml = (value: string) => value.replace(/[&<>"\']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "\'": "&#39;" }[char] ?? char));
+    const money = (amount: number) => `${amount.toLocaleString("en-US")} EGP`;
+    const payments = invoice.payments.length
+      ? invoice.payments.map((payment) => `<tr><td>${escapeHtml(fmtDateTime(payment.paidAt))}</td><td>${escapeHtml(payment.method.replace(/_/g, " "))}</td><td class="amount">${money(payment.amount)}</td></tr>`).join("")
+      : `<tr><td colspan="3" class="muted">No payments recorded</td></tr>`;
+    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${escapeHtml(invoice.invoiceNumber)}</title><style>
+      *{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#242238;margin:0;padding:40px;background:#fff}.sheet{max-width:760px;margin:auto}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #514477;padding-bottom:22px}.brand{font-size:27px;font-weight:800;letter-spacing:2px;color:#514477}.muted{color:#777;font-size:12px}.heading{font-size:25px;margin:28px 0 6px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.meta div,.totals div{background:#f7f5f1;padding:13px;border-radius:8px}.label{font-size:11px;color:#777;margin-bottom:5px}.value{font-size:14px;font-weight:700}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #e9e6e1;font-size:12px}th{background:#f7f5f1}.amount{text-align:right;font-weight:700}.totals{width:320px;margin:24px 0 0 auto;display:grid;gap:8px}.totals div{display:flex;justify-content:space-between;align-items:center}.balance{color:#514477;font-weight:800}.footer{margin-top:42px;padding-top:14px;border-top:1px solid #e9e6e1;text-align:center;color:#777;font-size:11px}@media print{body{padding:0}.sheet{max-width:none}.no-print{display:none}}
+      </style></head><body><main class="sheet"><header class="top"><div><div class="brand">EVIDA CLINIC</div><div class="muted">Nutrition & Dermatology</div></div><div style="text-align:right"><div class="muted">INVOICE</div><strong>${escapeHtml(invoice.invoiceNumber)}</strong></div></header><h1 class="heading">Invoice</h1><div class="muted">Issued ${escapeHtml(fmtDate(invoice.createdAt))}</div><section class="meta"><div><div class="label">CLIENT</div><div class="value">${escapeHtml(me.fullName)}</div><div class="muted">${escapeHtml(me.email ?? "")}</div><div class="muted">${escapeHtml(me.phone ?? "")}</div></div><div><div class="label">SERVICE</div><div class="value">${escapeHtml(invoice.appointmentKind ?? "Clinic visit")}</div><div class="muted">Invoice number: ${escapeHtml(invoice.invoiceNumber)}</div></div></section><h3>Payment history</h3><table><thead><tr><th>Date</th><th>Payment method</th><th class="amount">Amount</th></tr></thead><tbody>${payments}</tbody></table><section class="totals"><div><span>Total</span><strong>${money(invoice.totalAmount)}</strong></div><div><span>Paid</span><strong>${money(invoice.paidAmount)}</strong></div><div><span>Remaining</span><strong class="balance">${money(invoice.remainingAmount)}</strong></div></section><footer class="footer">Thank you for choosing EVIDA Clinic</footer></main><script>window.onload=()=>{window.focus();window.print();};</script></body></html>`);
+    popup.document.close();
+  }
 
   async function cancel(appt: AppointmentDTO) {
     if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
@@ -401,6 +422,31 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                 </div>
               </Card>
             ) : null}
+          </div>
+        ) : null}
+
+        {view === "invoices" ? (
+          <div className="space-y-4">
+            {myInvoices.length === 0 ? (
+              <Card><EmptyState title="No invoices yet" hint="Your invoices will appear here after a completed visit." icon={<ClipboardList className="h-5 w-5"} />} /></Card>
+            ) : myInvoices.map((invoice) => (
+              <Card key={invoice.id} className="p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-bold text-ink">Invoice {invoice.invoiceNumber}</p>
+                    <p className="mt-1 text-[11px] text-ink/55">{invoice.appointmentKind ?? "Clinic visit"} · {fmtDate(invoice.createdAt)}</p>
+                  </div>
+                  <Badge tone={invoice.status === "paid" ? "moss" : invoice.status === "partially_paid" ? "clay" : "berry"}>{invoice.status === "paid" ? "Paid" : invoice.status === "partially_paid" ? "Partially paid" : "Unpaid"}</Badge>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  <div className="rounded-xl bg-sand-100 p-2"><p className="text-[10px] text-ink/50">Total</p><p className="num text-sm font-bold">{invoice.totalAmount.toLocaleString("en-US")} EGP</p></div>
+                  <div className="rounded-xl bg-moss-100/60 p-2"><p className="text-[10px] text-ink/50">Paid</p><p className="num text-sm font-bold">{invoice.paidAmount.toLocaleString("en-US")} EGP</p></div>
+                  <div className="rounded-xl bg-clay-100/60 p-2"><p className="text-[10px] text-ink/50">Remaining</p><p className="num text-sm font-bold">{invoice.remainingAmount.toLocaleString("en-US")} EGP</p></div>
+                </div>
+                {invoice.payments.length > 0 ? <div className="mt-4 border-t border-ink/8 pt-3"><p className="mb-2 text-xs font-semibold text-ink">Payment history</p><div className="space-y-2">{invoice.payments.map((payment) => <div key={payment.id} className="flex justify-between gap-2 text-xs text-ink/65"><span>{payment.method.replace(/_/g, " ")} · {fmtDateTime(payment.paidAt)}</span><strong className="num">{payment.amount.toLocaleString("en-US")} EGP</strong></div>)}</div></div> : null}
+                <div className="mt-4 flex justify-end"><Button size="sm" variant="outline" icon={<Printer className="h-4 w-4" />} onClick={() => printInvoice(invoice)} type="button">Print invoice</Button></div>
+              </Card>
+            ))}
           </div>
         ) : null}
 
