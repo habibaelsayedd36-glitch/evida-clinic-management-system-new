@@ -332,7 +332,7 @@ export function AppointmentForm({
       scheduledAt: initial ? toLocalInput(initial.scheduledAt) : toLocalInput(),
       durationMin: String(initial?.durationMin ?? 30),
       kind: initial?.kind ?? "consultation",
-      status: initial?.status ?? "scheduled",
+      status: initial?.status ?? "pending_doctor",
       location: initial?.location ?? "EVIDA Clinic, Medical Park, 3rd Floor, Clinic 331 — behind Joy Hospital, New Cairo",
       price: initial?.price?.toString() ?? "",
       notes: initial?.notes ?? "",
@@ -378,7 +378,7 @@ export function AppointmentForm({
         )
       : await run(
           () => api("POST", "/api/appointments", payload),
-          lockClientId ? "Appointment request sent to your doctor" : "Appointment booked",
+          lockClientId ? "Appointment request sent to your doctor" : "Appointment request created",
         );
     if (done) onClose();
   }
@@ -388,14 +388,14 @@ export function AppointmentForm({
       open={open}
       onClose={onClose}
       title={initial ? (lockClientId ? "Request a new appointment time" : "Suggest a new appointment time") : "Book a new appointment"}
-      subtitle={initial ? "The other side must confirm the proposed time before it is final" : "Saved to the database and both sides get a notification"}
+      subtitle={initial ? "The other side must confirm the proposed time before it is final" : "This request stays pending until the doctor confirms it."}
       footer={
         <>
           <Button variant="ghost" onClick={onClose} type="button">
             Cancel
           </Button>
           <Button onClick={submit} loading={busy} icon={<CalendarPlus className="h-4 w-4" />} type="button">
-            {initial ? (lockClientId ? "Request reschedule" : "Send new time for confirmation") : "Confirm booking"}
+            {initial ? (lockClientId ? "Request reschedule" : "Send new time for confirmation") : "Send appointment request"}
           </Button>
         </>
       }
