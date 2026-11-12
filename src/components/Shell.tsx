@@ -177,7 +177,7 @@ export function Shell({
 
         <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
           <header className="sticky top-0 z-40 border-b border-ink/8 bg-sand-50/85 backdrop-blur-md">
-            <div className="flex min-w-0 flex-nowrap items-center gap-1.5 px-2.5 py-2.5 sm:gap-3 sm:px-5 lg:px-6 xl:px-8 sm:py-3.5">
+            <div className="flex min-w-0 flex-nowrap items-center gap-2 px-2.5 py-3 sm:gap-3 sm:px-5 sm:py-3.5 lg:px-6 xl:px-8">
               <button
                 type="button"
                 onClick={() => setMobileNav(true)}
@@ -188,8 +188,8 @@ export function Shell({
               </button>
 
               <div className="min-w-0 flex-1">
-                <h1 className="truncate font-display text-lg font-bold text-ink sm:text-xl">{title}</h1>
-                {subtitle ? <p className="mt-0.5 truncate text-xs text-ink/55">{subtitle}</p> : null}
+                <h1 className="min-w-0 whitespace-normal break-words font-display text-[15px] font-bold leading-tight text-ink sm:text-xl">{title}</h1>
+                {subtitle ? <p className="mt-1 line-clamp-2 whitespace-normal break-words text-[10px] leading-snug text-ink/55 sm:text-xs">{subtitle}</p> : null}
               </div>
 
               <div className="flex shrink-0 items-center gap-1 sm:gap-2">
