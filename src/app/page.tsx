@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { getCurrentProfile, getDashboardPath } from "@/lib/auth";
 import { Brand } from "@/components/Shell";
+import InstallAppButton from "@/components/InstallAppButton";
 import { Badge } from "@/components/ui";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,7 @@ export default async function LandingPage() {
             </a>
           </nav>
           <div className="flex items-center gap-2">
+            <InstallAppButton />
             <Link href="/register" className="hidden rounded-lg px-3 py-2 text-[13px] font-semibold text-ink/70 transition hover:bg-sand-100 sm:block">
               New account
             </Link>
