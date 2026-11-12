@@ -616,15 +616,15 @@ export async function createDose(user: ProfileDTO, body: Body) {
     const plan = await db.select({ clientId: treatmentPlans.clientId }).from(treatmentPlans).where(eq(treatmentPlans.id, planId)).limit(1);
     assert(plan[0]?.clientId === clientId, "That plan does not belong to this client", 400);
   }
-  const medicine = str(body.medicine, { required: true, label: "Medicine name", max: 200 })!;
+  const doseAmount = str(body.dosage, { required: true, label: "Dose amount / units", max: 120 })!;
   const frequency = str(body.frequency, { max: 120 });
   const [row] = await db
     .insert(medicationDoses)
     .values({
       planId,
       clientId,
-      medicine,
-      dosage: str(body.dosage, { max: 120 }),
+      medicine: "Dose",
+      dosage: doseAmount,
       frequency,
       timeOfDay: str(body.timeOfDay, { max: 40 }),
       instructions: str(body.instructions, { max: 1000 }),
@@ -635,7 +635,7 @@ export async function createDose(user: ProfileDTO, body: Body) {
     .returning({ id: medicationDoses.id });
   await notify([clientId], {
     title: "New dose added to your plan",
-    body: `${medicine} — ${frequency ?? ""}`.trim(),
+    body: `${doseAmount} — ${frequency ?? ""}`.trim(),
     kind: "medication",
     actorId: user.id,
     clientId,
@@ -710,7 +710,7 @@ export async function createDoseLog(user: ProfileDTO, body: Body) {
     if (assignment) {
       await notify([assignment.doctorId], {
         title: "Client logged a dose",
-        body: `${dose.medicine} — ${fmtWhen(takenAt)}`,
+        body: `${dose.dosage ?? "Dose"} — ${fmtWhen(takenAt)}`,
         kind: "medication",
         actorId: user.id,
         clientId: dose.clientId,
