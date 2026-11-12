@@ -73,9 +73,22 @@ export function Shell({
     router.refresh();
   }
 
-  async function toggleRead(n: NotificationDTO) {
-    await api("PATCH", `/api/notifications/${n.id}`, { read: !n.readAt });
-    await onRefresh();
+  async function openNotification(n: NotificationDTO) {
+    setBellOpen(false);
+
+    if (!n.readAt) {
+      try {
+        await api("PATCH", `/api/notifications/${n.id}`, { read: true });
+        await onRefresh();
+      } catch {
+        // Keep navigation available even if marking the notification as read fails.
+      }
+    }
+
+    // Notification links are internal dashboard destinations.
+    if (n.link?.startsWith("/") && !n.link.startsWith("//")) {
+      router.push(n.link);
+    }
   }
 
   async function markAll() {
@@ -237,7 +250,7 @@ export function Shell({
                             <button
                               key={n.id}
                               type="button"
-                              onClick={() => void toggleRead(n)}
+                              onClick={() => void openNotification(n)}
                               className={`flex w-full items-start gap-3 border-b border-ink/5 px-4 py-4 text-start transition hover:bg-sand-50 ${
                                 n.readAt ? "opacity-60" : ""
                               }`}
