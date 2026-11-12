@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   Bell,
+  ChevronRight,
   LogOut,
   Menu,
   RefreshCw,
@@ -81,14 +82,44 @@ export function Shell({
         await api("PATCH", `/api/notifications/${n.id}`, { read: true });
         await onRefresh();
       } catch {
-        // Keep navigation available even if marking the notification as read fails.
+        // Navigation should still work if the read receipt cannot be saved.
       }
     }
 
-    // Notification links are internal dashboard destinations.
-    if (n.link?.startsWith("/") && !n.link.startsWith("//")) {
-      router.push(n.link);
+    const rawLink = n.link?.trim();
+    if (rawLink) {
+      const viewMatch = rawLink.match(/[?&#]view=([a-z_-]+)/i);
+      const candidate = (viewMatch?.[1] ?? rawLink.replace(/^#?\/?/, "").split(/[/?#]/)[0]).toLowerCase();
+      const navTarget = nav.find((item) => item.id.toLowerCase() === candidate);
+      if (navTarget) {
+        onNavigate(navTarget.id);
+        return;
+      }
+      if (rawLink.startsWith("/") && !rawLink.startsWith("//")) {
+        router.push(rawLink);
+        return;
+      }
     }
+
+    // Older notifications may not have a link saved. Route them by their
+    // event type and message so a tap always takes the user to a useful screen.
+    const message = `${n.kind} ${n.title} ${n.body ?? ""}`.toLowerCase();
+    const has = (...words: string[]) => words.some((word) => message.includes(word));
+    let target: string | undefined;
+
+    if (has("appointment", "booking", "reschedul", "schedule", "موعد", "حجز")) {
+      target = nav.find((item) => item.id === "appointments")?.id;
+    } else if (has("diet", "meal", "nutrition", "وجبة", "غذ") ) {
+      target = nav.find((item) => item.id === "diet")?.id ?? nav.find((item) => item.id === "plans")?.id;
+    } else if (has("plan", "dose", "medication", "session", "خطة", "جرعة")) {
+      target = nav.find((item) => ["plans", "treatment"].includes(item.id))?.id;
+    } else if (has("record", "diagnosis", "medical", "سجل", "تشخيص")) {
+      target = nav.find((item) => item.id === "records")?.id;
+    } else if (has("assign", "client", "profile", "عميل", "طبيب")) {
+      target = nav.find((item) => ["clients", "profile"].includes(item.id))?.id;
+    }
+
+    onNavigate(target ?? nav.find((item) => item.id === "notifications")?.id ?? nav[0]?.id ?? active);
   }
 
   async function markAll() {
@@ -189,27 +220,30 @@ export function Shell({
         ) : null}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
-          <header className="sticky top-0 z-40 border-b border-ink/8 bg-sand-50/85 backdrop-blur-md">
-            <div className="grid min-w-0 grid-cols-[36px_minmax(0,1fr)] items-start gap-x-2 gap-y-3 px-3 py-4 sm:flex sm:items-center sm:gap-3 sm:px-5 sm:py-4 lg:px-6 xl:px-8">
+          <header className="sticky top-0 z-40 border-b border-ink/10 bg-white/90 shadow-[0_8px_24px_-22px_rgba(35,24,64,0.55)] backdrop-blur-xl">
+            <div className="grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-x-3 gap-y-3 px-3 py-3.5 sm:flex sm:gap-4 sm:px-5 sm:py-4 lg:px-7 xl:px-9">
               <button
                 type="button"
                 onClick={() => setMobileNav(true)}
-                className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink/10 bg-white p-0 text-ink/60 lg:hidden"
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-iris-100 bg-iris-50 text-iris-700 transition hover:border-iris-300 hover:bg-iris-100 lg:hidden"
                 aria-label="Open menu"
               >
-                <Menu className="h-4 w-4" />
+                <Menu className="h-[18px] w-[18px]" />
               </button>
 
-              <div className="min-w-0 self-center sm:flex-1">
-                <h1 className="min-w-0 whitespace-normal break-words font-display text-base font-bold leading-snug text-ink sm:text-xl sm:leading-snug">{title}</h1>
-                {subtitle ? <p className="mt-1 whitespace-normal break-words text-xs leading-relaxed text-ink/60 sm:text-sm">{subtitle}</p> : null}
+              <div className="relative min-w-0 self-center sm:flex-1">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="hidden h-7 w-1 shrink-0 rounded-full bg-gradient-to-b from-iris-500 to-iris-800 sm:block" />
+                  <h1 className="min-w-0 whitespace-normal break-words font-display text-[17px] font-extrabold leading-tight tracking-[-0.02em] text-ink sm:text-[21px]">{title}</h1>
+                </div>
+                {subtitle ? <p className="mt-1.5 whitespace-normal break-words text-[11px] leading-relaxed text-ink/55 sm:mt-1 sm:ps-3 sm:text-xs">{subtitle}</p> : null}
               </div>
 
               <div className="col-span-2 flex min-w-0 items-center justify-end gap-2 sm:col-auto sm:ml-auto sm:shrink-0">
                 <button
                   type="button"
                   onClick={() => void onRefresh()}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-ink/10 bg-white px-2 py-2 text-xs font-medium text-ink/65 transition hover:border-iris-300 hover:text-iris-700 sm:px-2.5"
+                  className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-ink/10 bg-sand-50 px-3 text-xs font-semibold text-ink/65 transition hover:border-iris-300 hover:bg-iris-50 hover:text-iris-700"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
                   <span className="hidden sm:inline">Refresh</span>
@@ -219,7 +253,7 @@ export function Shell({
                   <button
                     type="button"
                     onClick={() => setBellOpen((v) => !v)}
-                    className="relative shrink-0 rounded-lg border border-ink/10 bg-white p-2 text-ink/65 transition hover:border-iris-300 hover:text-iris-700"
+                    className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-ink/10 bg-sand-50 text-ink/65 transition hover:border-iris-300 hover:bg-iris-50 hover:text-iris-700"
                     aria-label="Notifications"
                   >
                     <Bell className="h-4 w-4" />
@@ -231,7 +265,7 @@ export function Shell({
                   </button>
 
                   {bellOpen ? (
-                    <div className="anim-pop fixed inset-x-3 top-[4.5rem] z-[60] max-h-[calc(100dvh-5.5rem)] overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_28px_60px_-30px_rgba(23,18,38,0.65)] sm:absolute sm:inset-x-auto sm:end-0 sm:top-12 sm:w-[min(92vw,28rem)] sm:max-h-[min(75vh,38rem)]">
+                    <div className="anim-pop fixed inset-x-3 top-[5rem] z-[60] max-h-[calc(100dvh-6rem)] overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_28px_60px_-30px_rgba(23,18,38,0.65)] sm:absolute sm:inset-x-auto sm:end-0 sm:top-12 sm:w-[min(92vw,28rem)] sm:max-h-[min(75vh,38rem)]">
                       <div className="flex items-center justify-between gap-3 border-b border-ink/8 px-4 py-3">
                         <p className="font-display text-base font-bold text-ink">Notifications</p>
                         <button
@@ -251,7 +285,7 @@ export function Shell({
                               key={n.id}
                               type="button"
                               onClick={() => void openNotification(n)}
-                              className={`flex w-full items-start gap-3 border-b border-ink/5 px-4 py-4 text-start transition hover:bg-sand-50 ${
+                              className={`flex w-full items-start gap-3 border-b border-ink/5 px-4 py-4 text-start transition hover:bg-iris-50/60 ${
                                 n.readAt ? "opacity-60" : ""
                               }`}
                             >
@@ -267,6 +301,7 @@ export function Shell({
                                 ) : null}
                                 <span className="mt-2 block text-[11px] text-ink/45">{fmtRelative(n.createdAt)}</span>
                               </span>
+                              <ChevronRight className="mt-1 h-4 w-4 shrink-0 text-ink/25" />
                             </button>
                           ))
                         )}
