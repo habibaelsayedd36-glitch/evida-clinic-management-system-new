@@ -132,6 +132,35 @@ export const medicalRecords = pgTable(
   (t) => [index("medical_records_client_idx").on(t.clientId)],
 );
 
+export const invoices = pgTable(
+  "invoices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    invoiceNumber: text("invoice_number").notNull().unique(),
+    appointmentId: uuid("appointment_id").notNull().unique().references(() => appointments.id, { onDelete: "cascade" }),
+    clientId: uuid("client_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    doctorId: uuid("doctor_id").references(() => profiles.id, { onDelete: "set null" }),
+    totalAmount: integer("total_amount").notNull().default(0),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("invoices_client_idx").on(t.clientId)],
+);
+
+export const invoicePayments = pgTable(
+  "invoice_payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    invoiceId: uuid("invoice_id").notNull().references(() => invoices.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    method: text("method").notNull().default("cash"),
+    reference: text("reference"),
+    note: text("note"),
+    receivedBy: uuid("received_by").references(() => profiles.id, { onDelete: "set null" }),
+    paidAt: timestamp("paid_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("invoice_payments_invoice_idx").on(t.invoiceId)],
+);
+
 export const treatmentPlans = pgTable(
   "treatment_plans",
   {
