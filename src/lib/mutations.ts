@@ -346,14 +346,19 @@ export async function createAppointment(user: ProfileDTO, body: Body) {
   });
 
   const kindLabel = str(body.kind, { max: 40 }) ?? "consultation";
-  if (user.role === "client") {
-    await notify([doctorId, ...(await staffIds("admin"))], {
-      title: "New appointment request",
-      body: `${client?.fullName} requested an appointment for ${fmtWhen(scheduledAt)}.`,
-      kind: "appointment",
-      actorId: user.id,
-      clientId,
-    });
+  if (user.role === "client" || user.role === "admin") {
+    await notify(
+      [doctorId, ...(await staffIds("admin")), ...(user.role === "admin" ? [clientId] : [])],
+      {
+        title: "New appointment awaiting doctor confirmation",
+        body: user.role === "client"
+          ? `${client?.fullName} requested an appointment for ${fmtWhen(scheduledAt)}.`
+          : `An appointment was booked for ${client?.fullName} on ${fmtWhen(scheduledAt)} and needs your confirmation.`,
+        kind: "appointment",
+        actorId: user.id,
+        clientId,
+      },
+    );
   } else {
     await notify([clientId], {
       title: "New appointment at EVIDA",
