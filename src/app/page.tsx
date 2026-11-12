@@ -142,6 +142,72 @@ export default async function LandingPage() {
         </div>
       </section>
 
+      {/* official services and offers */}
+      <section id="services" className="relative z-10 border-t border-ink/8 bg-sand-50 py-16">
+        <div className="mx-auto max-w-6xl px-5">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <Badge tone="clay">Official EVIDA Offers</Badge>
+              <h2 className="mt-3 font-display text-3xl font-extrabold text-ink">Nutrition & Weight Management</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-7 text-ink/60">Clinic packages and promotional prices in EGP. Offers are valid until 30 November 2026.</p>
+            </div>
+            <Link href="/register" className="inline-flex items-center gap-2 rounded-xl bg-iris-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-iris-800">
+              Book a consultation <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <article className="rounded-2xl border border-iris-200 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="rounded-full bg-iris-50 px-3 py-1 text-xs font-bold text-iris-700">50% OFFER</span>
+                <Salad className="h-6 w-6 text-iris-600" />
+              </div>
+              <h3 className="mt-4 font-display text-xl font-bold text-ink">Normal Diet</h3>
+              <p className="mt-2 text-sm leading-6 text-ink/60">Clinical nutrition assessment, full InBody body-composition scan, and a personalized weekly meal plan with Dr. Mohab or Dr. Omnia.</p>
+              <div className="mt-5 flex items-baseline gap-3"><strong className="text-3xl text-iris-700">500 EGP</strong><span className="text-sm text-ink/40 line-through">1,000 EGP</span></div>
+              <p className="mt-3 text-xs text-ink/50">Offer valid until 30/11/2026</p>
+              <Link href="/register" className="mt-5 inline-flex rounded-lg bg-iris-700 px-4 py-2.5 text-sm font-semibold text-white">Book offer</Link>
+            </article>
+
+            <article className="rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between"><span className="rounded-full bg-sand-100 px-3 py-1 text-xs font-bold text-ink/70">GLP-1 PACKAGE</span><Pill className="h-6 w-6 text-iris-600" /></div>
+              <h3 className="mt-4 font-display text-xl font-bold text-ink">UNCUT – Semaglutide</h3>
+              <p className="mt-2 text-sm leading-6 text-ink/60">Clinic-listed semaglutide service with nutrition follow-up and scheduled body-composition reviews, subject to physician assessment.</p>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-ink/50">Single option · 10 units</p><strong className="mt-1 block text-xl text-iris-700">1,500 EGP</strong><span className="text-xs text-ink/40 line-through">2,000 EGP</span></div>
+                <div className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-ink/50">Full package · 500 units</p><strong className="mt-1 block text-xl text-iris-700">20,000 EGP</strong></div>
+              </div>
+              <Link href="/register" className="mt-5 inline-flex rounded-lg border border-iris-300 px-4 py-2.5 text-sm font-semibold text-iris-700">Request consultation</Link>
+            </article>
+
+            <article className="rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between"><span className="rounded-full bg-sand-100 px-3 py-1 text-xs font-bold text-ink/70">DUAL GIP + GLP-1</span><Pill className="h-6 w-6 text-iris-600" /></div>
+              <h3 className="mt-4 font-display text-xl font-bold text-ink">PROCUT – Tirzepatide</h3>
+              <p className="mt-2 text-sm leading-6 text-ink/60">Clinic-listed tirzepatide service with individualized nutrition support and physician follow-up, subject to clinical assessment.</p>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-ink/50">Single option · 10 units</p><strong className="mt-1 block text-xl text-iris-700">2,500 EGP</strong><span className="text-xs text-ink/40 line-through">3,000 EGP</span></div>
+                <div className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-ink/50">Full package · 200 units</p><strong className="mt-1 block text-xl text-iris-700">30,000 EGP</strong></div>
+              </div>
+              <Link href="/register" className="mt-5 inline-flex rounded-lg border border-iris-300 px-4 py-2.5 text-sm font-semibold text-iris-700">Request consultation</Link>
+            </article>
+
+            <article className="rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between"><span className="rounded-full bg-sand-100 px-3 py-1 text-xs font-bold text-ink/70">TRIPLE RECEPTOR · CLINICAL REVIEW REQUIRED</span><Pill className="h-6 w-6 text-iris-600" /></div>
+              <h3 className="mt-4 font-display text-xl font-bold text-ink">PROCUT PREMIUM – Retatrutide</h3>
+              <p className="mt-2 text-sm leading-6 text-ink/60">Listed for consultation only. Retatrutide remains investigational and is not an approved routine weight-management treatment; availability and eligibility require specialist and regulatory verification.</p>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-ink/50">Listed single option · 10 units</p><strong className="mt-1 block text-xl text-iris-700">3,000 EGP</strong><span className="text-xs text-ink/40 line-through">3,500 EGP</span></div>
+                <div className="rounded-xl bg-sand-50 p-3"><p className="text-xs text-ink/50">Listed full package · 200 units</p><strong className="mt-1 block text-xl text-iris-700">35,000 EGP</strong></div>
+              </div>
+              <Link href="/register" className="mt-5 inline-flex rounded-lg border border-iris-300 px-4 py-2.5 text-sm font-semibold text-iris-700">Contact clinic for review</Link>
+            </article>
+          </div>
+          <p className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-900">
+            Medical notice: medication suitability, product authenticity, prescription, dose and treatment schedule must be determined by the responsible licensed physician after an in-person assessment. Package “units” are reproduced from the clinic price list and are not dosing instructions. No treatment outcome is guaranteed.
+          </p>
+        </div>
+      </section>
+
       {/* contact */}
       <section id="contact" className="relative z-10 border-t border-ink/8 bg-white/70 py-14">
         <div className="mx-auto max-w-6xl px-5">
