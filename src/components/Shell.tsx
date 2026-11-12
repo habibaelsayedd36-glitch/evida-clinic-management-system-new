@@ -84,7 +84,7 @@ export function Shell({
   }
 
   const sidebar = (
-    <div className="flex h-full flex-col gap-6 px-4 py-5">
+    <div className="flex h-full min-w-0 flex-col gap-6 overflow-y-auto px-4 py-5">
       <Brand />
 
       <nav className="flex flex-1 flex-col gap-1">
@@ -177,11 +177,11 @@ export function Shell({
 
         <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
           <header className="sticky top-0 z-40 border-b border-ink/8 bg-sand-50/85 backdrop-blur-md">
-            <div className="flex min-w-0 flex-nowrap items-center gap-2 px-3 py-3 sm:gap-3 sm:px-5 lg:px-6 xl:px-8 sm:py-3.5">
+            <div className="flex min-w-0 flex-nowrap items-center gap-1.5 px-2.5 py-2.5 sm:gap-3 sm:px-5 lg:px-6 xl:px-8 sm:py-3.5">
               <button
                 type="button"
                 onClick={() => setMobileNav(true)}
-                className="rounded-lg border border-ink/10 bg-white p-2 text-ink/60 lg:hidden"
+                className="shrink-0 rounded-lg border border-ink/10 bg-white p-2 text-ink/60 lg:hidden"
                 aria-label="Open menu"
               >
                 <Menu className="h-4 w-4" />
@@ -196,7 +196,7 @@ export function Shell({
                 <button
                   type="button"
                   onClick={() => void onRefresh()}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-ink/10 bg-white px-2.5 py-2 text-xs font-medium text-ink/65 transition hover:border-iris-300 hover:text-iris-700"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-ink/10 bg-white px-2 py-2 text-xs font-medium text-ink/65 transition hover:border-iris-300 hover:text-iris-700 sm:px-2.5"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
                   Refresh
@@ -206,7 +206,7 @@ export function Shell({
                   <button
                     type="button"
                     onClick={() => setBellOpen((v) => !v)}
-                    className="relative rounded-lg border border-ink/10 bg-white p-2 text-ink/65 transition hover:border-iris-300 hover:text-iris-700"
+                    className="relative shrink-0 rounded-lg border border-ink/10 bg-white p-2 text-ink/65 transition hover:border-iris-300 hover:text-iris-700"
                     aria-label="Notifications"
                   >
                     <Bell className="h-4 w-4" />
