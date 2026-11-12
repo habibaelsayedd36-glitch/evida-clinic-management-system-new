@@ -100,9 +100,9 @@ export function AdminApp({ initial }: { initial: Bootstrap }) {
   }, []);
 
   const now = new Date();
-  const monthRevenue = data.appointments
-    .filter((a) => a.status === "completed" && new Date(a.scheduledAt).getFullYear() === now.getFullYear() && new Date(a.scheduledAt).getMonth() === now.getMonth())
-    .reduce((sum, a) => sum + (a.price ?? 0), 0);
+  const monthRevenue = data.invoices.reduce((sum, invoice) => sum + invoice.payments
+    .filter((payment) => new Date(payment.paidAt).getFullYear() === now.getFullYear() && new Date(payment.paidAt).getMonth() === now.getMonth())
+    .reduce((paid, payment) => paid + payment.amount, 0), 0);
   const goalProgress = monthlyGoal > 0 ? Math.min(100, Math.round((monthRevenue / monthlyGoal) * 100)) : 0;
   const goalRemaining = Math.max(0, monthlyGoal - monthRevenue);
 
