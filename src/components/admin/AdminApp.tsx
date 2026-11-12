@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
   Bell,
@@ -19,6 +19,9 @@ import {
   Pencil,
   Search,
   Tags,
+  Target,
+  TrendingUp,
+  Sparkles,
 } from "lucide-react";
 import { api, bmi, bmiLabel, currency, fmtDate, fmtRelative, fmtShortDate, groupBy, isSameDay } from "@/lib/client";
 import {
@@ -78,6 +81,50 @@ export function AdminApp({ initial }: { initial: Bootstrap }) {
   const [fileClient, setFileClient] = useState<ProfileDTO | null>(null);
   const [doctorFilter, setDoctorFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const [monthlyGoal, setMonthlyGoal] = useState(0);
+  const [goalInput, setGoalInput] = useState("");
+  const [goalSaving, setGoalSaving] = useState(false);
+  const [goalMessage, setGoalMessage] = useState("");
+  useEffect(() => {
+    let active = true;
+    api("GET", "/api/clinic-goal")
+      .then((result: { goal?: number }) => {
+        if (!active) return;
+        const value = Number(result.goal ?? 0);
+        setMonthlyGoal(value);
+        setGoalInput(value > 0 ? String(value) : "");
+      })
+      .catch(() => { if (active) setGoalMessage("Could not load the monthly target."); });
+    return () => { active = false; };
+  }, []);
+
+  const now = new Date();
+  const monthRevenue = data.appointments
+    .filter((a) => a.status === "completed" && new Date(a.scheduledAt).getFullYear() === now.getFullYear() && new Date(a.scheduledAt).getMonth() === now.getMonth())
+    .reduce((sum, a) => sum + (a.price ?? 0), 0);
+  const goalProgress = monthlyGoal > 0 ? Math.min(100, Math.round((monthRevenue / monthlyGoal) * 100)) : 0;
+  const goalRemaining = Math.max(0, monthlyGoal - monthRevenue);
+
+  async function saveMonthlyGoal() {
+    const value = Number(goalInput);
+    if (!Number.isFinite(value) || value <= 0) {
+      setGoalMessage("Enter a target greater than 0 EGP.");
+      return;
+    }
+    setGoalSaving(true);
+    setGoalMessage("");
+    try {
+      await api("POST", "/api/clinic-goal", { goal: Math.round(value) });
+      setMonthlyGoal(Math.round(value));
+      setGoalInput(String(Math.round(value)));
+      setGoalMessage("Monthly target updated.");
+    } catch {
+      setGoalMessage("Could not save the target. Please try again.");
+    } finally {
+      setGoalSaving(false);
+    }
+  }
 
   const assignmentByClient = useMemo(() => {
     const map = new Map<string, AssignmentDTO>();
@@ -183,6 +230,46 @@ export function AdminApp({ initial }: { initial: Bootstrap }) {
       >
         {view === "overview" ? (
           <div className="space-y-5">
+            <Card className="relative isolate overflow-hidden border-0 bg-gradient-to-br from-[#211638] via-[#39245c] to-[#654a87] p-0 text-white shadow-[0_24px_60px_-28px_rgba(40,24,67,0.75)]">
+              <div className="pointer-events-none absolute -end-12 -top-20 h-64 w-64 rounded-full border border-white/10 bg-white/[0.04]" />
+              <div className="pointer-events-none absolute -end-2 bottom-[-7rem] h-56 w-56 rounded-full bg-[#c9a7f5]/15 blur-3xl" />
+              <div className="relative grid gap-6 p-5 sm:p-7 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+                <div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/75">
+                    <Sparkles className="h-3.5 w-3.5 text-[#e5c8ff]" /> EVIDA monthly momentum
+                  </div>
+                  <p className="mt-4 text-sm font-medium text-white/65">This month's collected revenue</p>
+                  <div className="mt-1 flex flex-wrap items-end gap-x-3 gap-y-1">
+                    <p className="num font-display text-4xl font-extrabold tracking-tight sm:text-5xl">{currency(monthRevenue)}</p>
+                    <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-emerald-300/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-200">
+                      <TrendingUp className="h-3.5 w-3.5" /> {monthlyGoal > 0 ? `${goalProgress}% of goal` : "Goal not set"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-white/55">Based on completed appointments this month</p>
+                </div>
+                <div className="rounded-2xl border border-white/15 bg-white/[0.08] p-4 backdrop-blur-sm sm:p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-sm font-semibold"><Target className="h-4 w-4 text-[#e5c8ff]" /> Monthly revenue goal</div>
+                    {monthlyGoal > 0 ? <span className="num text-xs text-white/70">{goalProgress}%</span> : null}
+                  </div>
+                  <div className="mt-4 h-3 overflow-hidden rounded-full bg-white/15">
+                    <div className="h-full rounded-full bg-gradient-to-r from-[#c8a7f5] via-[#e6c8ff] to-[#a6e5c4] transition-all duration-700" style={{ width: `${goalProgress}%` }} />
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-white/65">
+                    <span>{monthlyGoal > 0 ? `${currency(monthRevenue)} achieved` : "Set a target to track progress"}</span>
+                    <span>{monthlyGoal > 0 ? currency(monthlyGoal) : "—"}</span>
+                  </div>
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    <input aria-label="Monthly revenue target in EGP" type="number" min="1" step="500" value={goalInput} onChange={(e) => setGoalInput(e.target.value)} placeholder="Enter target (EGP)" className="h-10 min-w-0 flex-1 rounded-xl border border-white/15 bg-white/10 px-3 text-sm text-white outline-none placeholder:text-white/40 focus:border-white/40" />
+                    <Button size="sm" onClick={saveMonthlyGoal} loading={goalSaving} className="!bg-white !text-[#39245c] hover:!bg-[#f2eaff]" type="button">
+                      {monthlyGoal > 0 ? "Update goal" : "Set goal"}
+                    </Button>
+                  </div>
+                  {goalMessage ? <p className="mt-2 text-[11px] text-white/70">{goalMessage}</p> : null}
+                  {monthlyGoal > 0 ? <p className="mt-2 text-[11px] text-white/55">{goalRemaining > 0 ? `${currency(goalRemaining)} left to reach the goal` : "Goal reached — amazing work!"}</p> : null}
+                </div>
+              </div>
+            </Card>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               <StatTile label="Clients" value={data.stats.clients} hint={`${unassigned.length} without a doctor`} icon={<Users className="h-5 w-5" />} />
               <StatTile label="Appointments today" value={data.stats.appointmentsToday} hint="Across all doctors" tone="clay" icon={<CalendarDays className="h-5 w-5" />} />
