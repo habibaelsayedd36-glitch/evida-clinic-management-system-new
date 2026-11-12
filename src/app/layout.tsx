@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "EVIDA | Clinic Management System",
   description:
     "EVIDA clinic management system: admin, doctor and client accounts with appointments, treatment plans, diet plans, medical records, dose tracking and notifications — with strict per-role access control.",
+  applicationName: "Evida Clinic",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Evida Clinic" },
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }], apple: [{ url: "/icon.svg", type: "image/svg+xml" }] },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
