@@ -181,12 +181,16 @@ export type Stats = {
   unassignedClients: number;
 };
 
+export type InvoiceDTO = { id: string; invoiceNumber: string; appointmentId: string; clientId: string; doctorId: string | null; totalAmount: number; createdAt: string; paidAmount: number; remainingAmount: number; status: "unpaid" | "partially_paid" | "paid"; payments: InvoicePaymentDTO[]; clientName?: string | null; doctorName?: string | null; appointmentKind?: string | null; };
+
+export type InvoicePaymentDTO = { id: string; invoiceId: string; amount: number; method: string; reference: string | null; note: string | null; receivedBy: string | null; paidAt: string; };
+
 export type Bootstrap = {
   me: ProfileDTO;
   clients: ProfileDTO[];
   doctors: ProfileDTO[];
   assignments: AssignmentDTO[];
-  appointments: AppointmentDTO[];
+  appointments: AppointmentDTO[];\n  invoices: InvoiceDTO[];
   history: HistoryDTO[];
   records: RecordDTO[];
   plans: PlanDTO[];
