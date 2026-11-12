@@ -88,8 +88,8 @@ export function AdminApp({ initial }: { initial: Bootstrap }) {
   const [goalMessage, setGoalMessage] = useState("");
   useEffect(() => {
     let active = true;
-    api("GET", "/api/clinic-goal")
-      .then((result: { goal?: number }) => {
+    api<{ goal?: number }>("GET", "/api/clinic-goal")
+      .then((result) => {
         if (!active) return;
         const value = Number(result.goal ?? 0);
         setMonthlyGoal(value);
