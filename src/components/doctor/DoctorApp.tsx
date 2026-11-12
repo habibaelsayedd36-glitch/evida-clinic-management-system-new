@@ -209,6 +209,8 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                       onEdit={() => setApptModal({ open: true, appt: a })}
                       onComplete={() => changeStatus(a, "completed")}
                       onConfirm={a.status === "pending_doctor" ? () => changeStatus(a, "scheduled") : undefined}
+                      onNotConfirm={a.status === "pending_doctor" ? () => changeStatus(a, "not_confirmed") : undefined}
+                      onReschedule={a.status === "pending_doctor" ? () => setApptModal({ open: true, appt: a }) : undefined}
                       onCancel={() => changeStatus(a, "cancelled")}
                       onDelete={() => remove("appointments", a.id, "appointment")}
                     />
@@ -358,7 +360,7 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
                   className="rounded-lg border border-ink/12 bg-white px-3 py-2 text-sm"
                 >
                   <option value="all">All statuses</option>
-                  {["pending_doctor", "pending_client", "scheduled", "completed", "cancelled", "no_show"].map((s) => (
+                  {["pending_doctor", "pending_client", "scheduled", "not_confirmed", "completed", "cancelled", "no_show"].map((s) => (
                     <option key={s} value={s}>
                       {STATUS_LABELS[s]}
                     </option>
