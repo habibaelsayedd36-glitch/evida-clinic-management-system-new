@@ -166,47 +166,44 @@
 }
 
 
-/* Small-screen layout safeguards */
+/* Mobile layout: keep every screen inside the device width. */
 @media (max-width: 640px) {
-  html,
-  body {
+  html, body {
     width: 100%;
     max-width: 100%;
-    overflow-x: clip;
+    overflow-x: hidden;
   }
 
-  body {
-    font-size: 14px;
-  }
+  body { font-size: 14px; }
 
-  button,
-  input,
-  select,
-  textarea {
-    max-width: 100%;
-  }
-
-  main {
-    min-width: 0;
-  }
-
-  main > div {
+  #__next, main, main > div {
+    width: 100%;
     min-width: 0;
     max-width: 100%;
   }
+
+  main { overflow-x: hidden; }
+
+  main > div > * { min-width: 0; max-width: 100%; }
+
+  button, input, select, textarea { max-width: 100%; }
 
   table {
+    display: block;
+    width: 100%;
     max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  img,
-  video,
-  canvas {
-    max-width: 100%;
+  img, video, canvas { max-width: 100%; }
+
+  [role="dialog"] {
+    max-width: calc(100vw - 20px);
   }
 
   .fixed[role="dialog"] > div {
-    max-height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 20px);
     overflow-y: auto;
   }
 }
