@@ -297,6 +297,24 @@ export async function deleteAssignment(user: ProfileDTO, id: string) {
 /* appointments                                                        */
 /* ------------------------------------------------------------------ */
 
+function assertClinicHours(scheduledAt: Date, durationMin: number) {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Cairo",
+    weekday: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(scheduledAt);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const weekday = values.weekday;
+  const startMinutes = Number(values.hour) * 60 + Number(values.minute);
+  assert(weekday !== "Fri", "The clinic is closed on Fridays. Choose Saturday to Thursday.");
+  assert(
+    startMinutes >= 16 * 60 && startMinutes + durationMin <= 22 * 60,
+    "Clinic appointments are available Saturday to Thursday, 4:00 PM to 10:00 PM. The visit must finish by 10:00 PM.",
+  );
+}
+
 export async function createAppointment(user: ProfileDTO, body: Body) {
   // a client booking for himself doesn't need to send clientId
   const clientId =
@@ -318,6 +336,9 @@ export async function createAppointment(user: ProfileDTO, body: Body) {
   }
 
   const scheduledAt = timestamp(body.scheduledAt, "Appointment time");
+  const durationMin = int(body.durationMin) ?? 30;
+  assert(durationMin > 0 && durationMin <= 240, "Appointment duration must be between 1 and 240 minutes");
+  assertClinicHours(scheduledAt, durationMin);
   const client = await profileById(clientId);
 
   const [row] = await db
@@ -326,7 +347,7 @@ export async function createAppointment(user: ProfileDTO, body: Body) {
       clientId,
       doctorId,
       scheduledAt,
-      durationMin: int(body.durationMin) ?? 30,
+      durationMin,
       kind: str(body.kind, { max: 40 }) ?? "consultation",
       status: "pending_doctor",
       location: str(body.location, { max: 200 }) ?? "EVIDA Clinic — New Cairo, GOE Medical Park Mall 3",
@@ -382,6 +403,11 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
   const patch: Record<string, unknown> = { updatedAt: new Date() };
   const requestedTime = body.scheduledAt !== undefined ? timestamp(body.scheduledAt, "Appointment time") : null;
   const timeChanged = requestedTime !== null && requestedTime.getTime() !== new Date(appt.scheduledAt).getTime();
+  const requestedDuration = body.durationMin !== undefined ? (int(body.durationMin) ?? appt.durationMin) : appt.durationMin;
+  if (timeChanged || body.durationMin !== undefined) {
+    assert(requestedDuration > 0 && requestedDuration <= 240, "Appointment duration must be between 1 and 240 minutes");
+    assertClinicHours(requestedTime ?? new Date(appt.scheduledAt), requestedDuration);
+  }
 
   if (user.role === "client") {
     const status = str(body.status, { max: 30 });
