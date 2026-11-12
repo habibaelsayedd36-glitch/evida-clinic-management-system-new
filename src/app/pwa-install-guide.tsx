@@ -13,7 +13,11 @@ export default function PwaInstallGuide() {
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as Navigator & { standalone?: boolean }).standalone === true;
     setIsSafari(/Safari/i.test(ua) && !/CriOS|FxiOS|EdgiOS/i.test(ua));
-    setShow(ios && !standalone && window.sessionStorage.getItem("evida-install-guide-dismissed") !== "1");
+    setShow(
+      ios &&
+        !standalone &&
+        window.sessionStorage.getItem("evida-install-guide-dismissed") !== "1",
+    );
   }, []);
 
   function closeGuide() {
@@ -24,18 +28,21 @@ export default function PwaInstallGuide() {
   if (!show) return null;
 
   const stepStyle: CSSProperties = {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: 12,
-    padding: 13,
+    display: "grid",
+    gridTemplateColumns: "30px minmax(0, 1fr)",
+    alignItems: "start",
+    columnGap: 12,
+    padding: "13px 12px",
     borderRadius: 14,
     background: "#f7f5fb",
+    width: "100%",
     minWidth: 0,
+    boxSizing: "border-box",
   };
+
   const stepNumberStyle: CSSProperties = {
-    flex: "0 0 28px",
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     borderRadius: 999,
     background: "#e9e2fb",
     color: "#5633b6",
@@ -43,12 +50,14 @@ export default function PwaInstallGuide() {
     placeItems: "center",
     fontWeight: 700,
     lineHeight: 1,
+    fontSize: 14,
   };
+
   const stepTextStyle: CSSProperties = {
-    flex: "1 1 0%",
     minWidth: 0,
-    overflowWrap: "break-word",
+    overflowWrap: "anywhere",
     wordBreak: "normal",
+    textAlign: "right",
   };
 
   return (
@@ -61,51 +70,84 @@ export default function PwaInstallGuide() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom))",
+        padding:
+          "max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom))",
+        boxSizing: "border-box",
       }}
     >
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="evida-install-title"
+        dir="rtl"
         style={{
-          width: "100%",
-          maxWidth: 420,
-          maxHeight: "min(90dvh, 720px)",
+          width: "min(100%, 420px)",
+          maxHeight:
+            "calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom) + 24px))",
           overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
           overscrollBehavior: "contain",
           borderRadius: 22,
           background: "#fff",
           color: "#252238",
-          padding: "clamp(16px, 5vw, 24px)",
+          padding: "clamp(14px, 4vw, 22px)",
           boxShadow: "0 20px 60px rgba(0,0,0,.25)",
           fontFamily: "Arial, sans-serif",
-          lineHeight: 1.5,
+          lineHeight: 1.6,
           boxSizing: "border-box",
-          overflowWrap: "break-word",
+          overflowWrap: "anywhere",
         }}
       >
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 10, minWidth: 0 }}>
-          <div style={{ flex: "1 1 0%", minWidth: 0 }}>
-            <div style={{ fontSize: 11, color: "#6c4ad4", fontWeight: 700, letterSpacing: 1 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) 36px",
+            alignItems: "start",
+            gap: 10,
+            minWidth: 0,
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div
+              style={{
+                fontSize: 11,
+                color: "#6c4ad4",
+                fontWeight: 700,
+                letterSpacing: 1,
+                textAlign: "right",
+              }}
+            >
               EVIDA CLINIC
             </div>
             <h2
               id="evida-install-title"
-              style={{ margin: "7px 0 6px", fontSize: "clamp(19px, 5vw, 23px)", lineHeight: 1.3, overflowWrap: "break-word" }}
+              style={{
+                margin: "7px 0 6px",
+                fontSize: "clamp(19px, 5vw, 23px)",
+                lineHeight: 1.4,
+                textAlign: "right",
+                overflowWrap: "anywhere",
+              }}
             >
-              Install EVIDA on your iPhone
+              ثبّتي EVIDA على الآيفون
             </h2>
-            <p style={{ margin: 0, fontSize: 13, color: "#686477", lineHeight: 1.55 }}>
-              Add EVIDA to your Home Screen for quick access. It is free and does not need the App Store.
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13,
+                color: "#686477",
+                lineHeight: 1.7,
+                textAlign: "right",
+              }}
+            >
+              ضيفي التطبيق على الشاشة الرئيسية عشان تفتحيه بسهولة في أي وقت. التثبيت مجاني ومش محتاج App Store.
             </p>
           </div>
           <button
             type="button"
-            aria-label="Close instructions"
+            aria-label="إغلاق التعليمات"
             onClick={closeGuide}
             style={{
-              flex: "0 0 36px",
               width: 36,
               height: 36,
               border: 0,
@@ -115,6 +157,7 @@ export default function PwaInstallGuide() {
               fontSize: 22,
               lineHeight: 1,
               cursor: "pointer",
+              flexShrink: 0,
             }}
           >
             ×
@@ -122,40 +165,91 @@ export default function PwaInstallGuide() {
         </div>
 
         {!isSafari ? (
-          <p style={{ margin: "14px 0 0", padding: 12, borderRadius: 12, background: "#fff4e5", color: "#714900", fontSize: 13, lineHeight: 1.5 }}>
-            First, open this same link in Safari. The installation option is available from Safari on iPhone.
+          <p
+            style={{
+              margin: "14px 0 0",
+              padding: 12,
+              borderRadius: 12,
+              background: "#fff4e5",
+              color: "#714900",
+              fontSize: 13,
+              lineHeight: 1.7,
+              textAlign: "right",
+              overflowWrap: "anywhere",
+            }}
+          >
+            افتحي نفس الرابط من متصفح Safari الأول؛ لأن اختيار إضافة التطبيق للشاشة الرئيسية متاح من خلال Safari على الآيفون.
           </p>
         ) : null}
 
-        <ol style={{ margin: "16px 0 0", padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
-          <li style={stepStyle}>
-            <span style={stepNumberStyle}>1</span>
+        <div
+          style={{
+            display: "grid",
+            gap: 10,
+            marginTop: 16,
+            minWidth: 0,
+          }}
+        >
+          <div style={stepStyle}>
+            <span style={stepNumberStyle}>١</span>
             <div style={stepTextStyle}>
-              <strong style={{ display: "block", fontSize: 14, lineHeight: 1.4 }}>Tap Share</strong>
-              <span style={{ display: "block", marginTop: 4, color: "#686477", fontSize: 12, lineHeight: 1.55 }}>
-                Tap the square with the upward arrow at the bottom of Safari.
+              <strong style={{ display: "block", fontSize: 14, lineHeight: 1.5 }}>
+                اضغطي على زر المشاركة Share
+              </strong>
+              <span
+                style={{
+                  display: "block",
+                  marginTop: 4,
+                  color: "#686477",
+                  fontSize: 12,
+                  lineHeight: 1.7,
+                }}
+              >
+                هتلاقيه على شكل مربع وسهم لفوق في شريط Safari.
               </span>
             </div>
-          </li>
-          <li style={stepStyle}>
-            <span style={stepNumberStyle}>2</span>
+          </div>
+
+          <div style={stepStyle}>
+            <span style={stepNumberStyle}>٢</span>
             <div style={stepTextStyle}>
-              <strong style={{ display: "block", fontSize: 14, lineHeight: 1.4 }}>Choose Add to Home Screen</strong>
-              <span style={{ display: "block", marginTop: 4, color: "#686477", fontSize: 12, lineHeight: 1.55 }}>
-                Scroll down in the Share menu if you do not see this option.
+              <strong style={{ display: "block", fontSize: 14, lineHeight: 1.5 }}>
+                اختاري Add to Home Screen
+              </strong>
+              <span
+                style={{
+                  display: "block",
+                  marginTop: 4,
+                  color: "#686477",
+                  fontSize: 12,
+                  lineHeight: 1.7,
+                }}
+              >
+                لو الاختيار مش ظاهر، انزلي لتحت في قائمة المشاركة لحد ما تلاقيه.
               </span>
             </div>
-          </li>
-          <li style={stepStyle}>
-            <span style={stepNumberStyle}>3</span>
+          </div>
+
+          <div style={stepStyle}>
+            <span style={stepNumberStyle}>٣</span>
             <div style={stepTextStyle}>
-              <strong style={{ display: "block", fontSize: 14, lineHeight: 1.4 }}>Tap Add</strong>
-              <span style={{ display: "block", marginTop: 4, color: "#686477", fontSize: 12, lineHeight: 1.55 }}>
-                The EVIDA icon will appear on your iPhone Home Screen.
+              <strong style={{ display: "block", fontSize: 14, lineHeight: 1.5 }}>
+                اضغطي Add للتأكيد
+              </strong>
+              <span
+                style={{
+                  display: "block",
+                  marginTop: 4,
+                  color: "#686477",
+                  fontSize: 12,
+                  lineHeight: 1.7,
+                }}
+              >
+                كده أيقونة EVIDA هتظهر على الشاشة الرئيسية وتقدري تفتحي التطبيق منها مباشرة.
               </span>
             </div>
-          </li>
-        </ol>
+          </div>
+        </div>
 
         <button
           type="button"
@@ -171,12 +265,13 @@ export default function PwaInstallGuide() {
             background: "#6c4ad4",
             color: "#fff",
             fontSize: 15,
-            lineHeight: 1.3,
+            lineHeight: 1.4,
             fontWeight: 700,
             cursor: "pointer",
+            boxSizing: "border-box",
           }}
         >
-          Close instructions
+          تمام، فهمت
         </button>
       </section>
     </div>
