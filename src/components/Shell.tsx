@@ -183,7 +183,7 @@ export function Shell({
 
         <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
           <header className="sticky top-0 z-40 border-b border-ink/8 bg-sand-50/85 backdrop-blur-md">
-            <div className="flex flex-wrap items-center gap-2 px-3 py-3 sm:gap-3 sm:px-6 sm:py-3.5">
+            <div className="flex min-w-0 flex-nowrap items-center gap-2 px-3 py-3 sm:gap-3 sm:px-6 sm:py-3.5">
               <button
                 type="button"
                 onClick={() => setMobileNav(true)}
@@ -279,7 +279,7 @@ export function Shell({
             </div>
           </main>
 
-          <footer className="px-6 pb-6 pt-2 text-center text-[11px] text-ink/40">
+          <footer className="px-3 pb-6 pt-2 text-center text-[10px] leading-5 text-ink/40 sm:px-6 sm:text-[11px]">
             <span className="inline-flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
               EVIDA Clinic — New Cairo · GOE Medical Park Mall 3, clinic 331 · 01000115502
