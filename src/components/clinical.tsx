@@ -1283,9 +1283,9 @@ export function AppointmentRow({
                 Not confirmed
               </Button>
             ) : null}
-            {appt.status === "pending_doctor" && onReschedule ? (
+            {["pending_doctor", "scheduled"].includes(appt.status) && onReschedule ? (
               <Button size="sm" variant="soft" onClick={onReschedule} type="button">
-                Request reschedule
+                Request to reschedule
               </Button>
             ) : null}
             {onClientReschedule && ["scheduled", "pending_client", "not_confirmed"].includes(appt.status) ? (
