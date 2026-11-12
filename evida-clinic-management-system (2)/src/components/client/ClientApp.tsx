@@ -1,0 +1,546 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  Bell,
+  CalendarDays,
+  CalendarPlus,
+  ClipboardList,
+  HeartPulse,
+  LayoutDashboard,
+  Pill,
+  Salad,
+  Stethoscope,
+  Trash2,
+  UserCog,
+  UtensilsCrossed,
+  Check,
+  Scale,
+} from "lucide-react";
+import { api, bmi, bmiLabel, fmtDate, fmtDateTime, fmtRelative, fmtTime, isSameDay, useBootstrap } from "@/lib/client";
+import { TIME_LABELS, type AppointmentDTO, type Bootstrap } from "@/lib/types";
+import { Avatar, Badge, Bar, Button, Card, EmptyState, Progress, SectionHeader, StatTile } from "@/components/ui";
+import { Shell, type NavItem } from "@/components/Shell";
+import { AppointmentForm, ProfileForm, useSubmit } from "@/components/forms";
+import { AppointmentRow, DietCard, PlanCard, RecordCard } from "@/components/clinical";
+
+const NAV: NavItem[] = [
+  { id: "home", label: "Home", icon: LayoutDashboard },
+  { id: "appointments", label: "My appointments", icon: CalendarDays },
+  { id: "diet", label: "Diet plan", icon: Salad },
+  { id: "treatment", label: "Treatment", icon: ClipboardList },
+  { id: "records", label: "Medical records", icon: Stethoscope },
+  { id: "profile", label: "My profile", icon: UserCog },
+  { id: "notifications", label: "Notifications", icon: Bell },
+];
+
+const TITLES: Record<string, { title: string; subtitle: string }> = {
+  home: { title: "Welcome to EVIDA", subtitle: "Your health follow-up in one place" },
+  appointments: { title: "My appointments", subtitle: "Book a new appointment or cancel an existing one" },
+  diet: { title: "Diet plan", subtitle: "The daily meals your doctor wrote for you" },
+  treatment: { title: "Treatment plan", subtitle: "Plans, sessions and daily doses" },
+  records: { title: "Medical records", subtitle: "Diagnosis and measurements from your visits" },
+  profile: { title: "My profile", subtitle: "Your data and measurements — visible only to you and your care team" },
+  notifications: { title: "Notifications", subtitle: "Alerts from the clinic and your care team" },
+};
+
+export function ClientApp({ initial }: { initial: Bootstrap }) {
+  const { data, refresh, loading } = useBootstrap(initial);
+  const { run } = useSubmit(refresh);
+  const [view, setView] = useState("home");
+  const [apptModal, setApptModal] = useState<{ open: boolean; appt?: AppointmentDTO | null }>({ open: false });
+  const [profileModal, setProfileModal] = useState(false);
+
+  const me = data.me;
+  const myDoctor = data.doctors[0] ?? null;
+  const assignment = data.assignments.find((a) => a.clientId === me.id) ?? null;
+
+  const upcoming = useMemo(
+    () =>
+      data.appointments
+        .filter((a) => a.status === "scheduled" && new Date(a.scheduledAt) >= new Date())
+        .sort((a, b) => +new Date(a.scheduledAt) - +new Date(b.scheduledAt)),
+    [data.appointments],
+  );
+  const next = upcoming[0] ?? null;
+  const past = data.appointments.filter((a) => new Date(a.scheduledAt) < new Date());
+  const activePlans = data.plans.filter((p) => p.status === "active");
+  const activeDiets = data.dietPlans.filter((d) => d.status === "active");
+  const activeDoses = data.doses.filter((d) => d.active);
+  const value = bmi(me.heightCm, me.weightKg);
+  const weightToTarget =
+    me.weightKg && me.targetWeightKg ? Math.max(0, Math.round((me.weightKg - me.targetWeightKg) * 10) / 10) : null;
+
+  async function cancel(appt: AppointmentDTO) {
+    if (!window.confirm("Are you sure you want to cancel this appointment?")) return;
+    await run(() => api("PATCH", `/api/appointments/${appt.id}`, { status: "cancelled" }), "Appointment cancelled");
+  }
+
+  async function logDose(doseId: string) {
+    await run(() => api("POST", "/api/dose-logs", { doseId }), "Dose logged");
+  }
+
+  async function markRead(id: string, read: boolean) {
+    await api("PATCH", `/api/notifications/${id}`, { read });
+    await refresh();
+  }
+
+  const todaysMeals = activeDiets[0] ? data.meals.filter((m) => m.dietPlanId === activeDiets[0].id && m.dayIndex === 1) : [];
+
+  return (
+    <>
+      <Shell
+        user={me}
+        nav={NAV.map((n) => ({
+          ...n,
+          count:
+            n.id === "appointments" ? upcoming.length : n.id === "notifications" ? data.stats.unreadNotifications : undefined,
+        }))}
+        active={view}
+        onNavigate={setView}
+        notifications={data.notifications}
+        onRefresh={refresh}
+        refreshing={loading}
+        title={TITLES[view].title}
+        subtitle={TITLES[view].subtitle}
+        headerAction={
+          <Button size="sm" icon={<CalendarPlus className="h-4 w-4" />} onClick={() => setApptModal({ open: true })} type="button">
+            Book appointment
+          </Button>
+        }
+      >
+        {view === "home" ? (
+          <div className="space-y-5">
+            <Card className="overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-4 bg-iris-700 px-5 py-5 text-sand-50">
+                <div className="min-w-0">
+                  <p className="text-[11px] tracking-[0.16em] text-iris-100/80">NEXT APPOINTMENT</p>
+                  {next ? (
+                    <>
+                      <p className="num mt-1.5 font-display text-2xl font-bold">{fmtDateTime(next.scheduledAt)}</p>
+                      <p className="mt-1 text-xs text-iris-100/85">
+                        {next.kind} · {next.durationMin} min · {next.location ?? "The clinic"}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="mt-1.5 font-display text-xl font-bold">No upcoming appointment</p>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  {myDoctor ? (
+                    <div className="flex items-center gap-2.5 rounded-xl bg-iris-800/60 px-3 py-2">
+                      <Avatar name={myDoctor.fullName} hue={myDoctor.avatarHue} size={36} />
+                      <div>
+                        <p className="text-[13px] font-semibold">{myDoctor.fullName}</p>
+                        <p className="text-[10px] text-iris-100/75">{myDoctor.specialization ?? "Responsible doctor"}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-iris-600 px-3 py-2 text-[12px] font-semibold text-white">
+                      No doctor assigned yet — clinic management will link you soon
+                    </div>
+                  )}
+                  {next ? (
+                    <Button
+                      variant="outline"
+                      className="!border-sand-50/30 !bg-transparent !text-sand-50 hover:!bg-sand-50/10"
+                      onClick={() => cancel(next)}
+                      type="button"
+                    >
+                      Cancel appointment
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="!border-sand-50/30 !bg-transparent !text-sand-50 hover:!bg-sand-50/10"
+                      onClick={() => setApptModal({ open: true })}
+                      type="button"
+                    >
+                      Book now
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <StatTile
+                label="Current weight"
+                value={me.weightKg ? `${me.weightKg} kg` : "—"}
+                hint={weightToTarget !== null ? `${weightToTarget} kg to your target` : undefined}
+                icon={<Scale className="h-5 w-5" />}
+              />
+              <StatTile label="Body mass index" value={value ?? "—"} hint={bmiLabel(value)} tone="clay" icon={<HeartPulse className="h-5 w-5" />} />
+              <StatTile label="Active doses" value={activeDoses.length} hint={`${data.doseLogs.length} logged doses`} tone="moss" icon={<Pill className="h-5 w-5" />} />
+              <StatTile label="Past visits" value={past.length} hint={`${data.records.length} medical records`} icon={<CalendarDays className="h-5 w-5" />} />
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <Card>
+                <SectionHeader
+                  title="Today's doses"
+                  subtitle="Tap the button once you take the dose"
+                  icon={<Pill className="h-4 w-4" />}
+                  action={
+                    <Button size="sm" variant="ghost" onClick={() => setView("treatment")} type="button">
+                      Treatment plan
+                    </Button>
+                  }
+                />
+                {activeDoses.length === 0 ? (
+                  <EmptyState title="No active doses" hint="Your doctor adds doses along with the plan" icon={<Pill className="h-5 w-5" />} />
+                ) : (
+                  <div className="divide-y divide-ink/6">
+                    {activeDoses.map((dose) => {
+                      const taken = data.doseLogs.some((l) => l.doseId === dose.id && isSameDay(l.takenAt));
+                      return (
+                        <div key={dose.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
+                          <div className="min-w-0">
+                            <p className="truncate text-[13px] font-semibold text-ink">{dose.medicine}</p>
+                            <p className="mt-0.5 text-[11px] text-ink/55">
+                              {dose.dosage ?? "—"} · {dose.frequency ?? "—"} ·{" "}
+                              {dose.timeOfDay ? TIME_LABELS[dose.timeOfDay] ?? dose.timeOfDay : "—"}
+                            </p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant={taken ? "soft" : "primary"}
+                            onClick={() => (taken ? undefined : logDose(dose.id))}
+                            icon={taken ? <Check className="h-3.5 w-3.5" /> : undefined}
+                            disabled={taken}
+                            type="button"
+                          >
+                            {taken ? "Taken" : "Log dose"}
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </Card>
+
+              <Card>
+                <SectionHeader
+                  title="Today's meals"
+                  subtitle={activeDiets[0]?.title ?? "No active plan"}
+                  icon={<UtensilsCrossed className="h-4 w-4" />}
+                  action={
+                    <Button size="sm" variant="ghost" onClick={() => setView("diet")} type="button">
+                      Full plan
+                    </Button>
+                  }
+                />
+                {activeDiets.length === 0 ? (
+                  <EmptyState title="No active diet plan" icon={<Salad className="h-5 w-5" />} />
+                ) : todaysMeals.length === 0 ? (
+                  <EmptyState title="No meals added yet" hint="Your doctor hasn't uploaded the meals for this plan" />
+                ) : (
+                  <div className="divide-y divide-ink/6">
+                    {todaysMeals.map((meal) => (
+                      <div key={meal.id} className="px-5 py-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-[13px] font-semibold text-ink">
+                            {TIME_LABELS[meal.timeOfDay] ?? meal.timeOfDay} · {meal.name}
+                          </p>
+                          {meal.calories ? <Badge tone="moss">{meal.calories} kcal</Badge> : null}
+                        </div>
+                        {meal.items ? <p className="mt-1 text-[11px] leading-5 text-ink/60">{meal.items}</p> : null}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
+
+            <Card>
+              <SectionHeader title="Treatment progress" subtitle="Completed sessions out of the total" icon={<ClipboardList className="h-4 w-4" />} />
+              {activePlans.length === 0 ? (
+                <EmptyState title="No active plan" icon={<ClipboardList className="h-5 w-5" />} />
+              ) : (
+                <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
+                  {activePlans.map((plan) => (
+                    <div key={plan.id} className="rounded-xl border border-ink/8 bg-white p-3.5">
+                      <p className="text-[13px] font-semibold text-ink">{plan.title}</p>
+                      <p className="mt-1 text-[11px] text-ink/55">
+                        {plan.startDate ? `${fmtDate(plan.startDate)} → ${plan.endDate ? fmtDate(plan.endDate) : "open ended"}` : ""}
+                      </p>
+                      <div className="mt-3">
+                        <Progress value={plan.sessionsDone} total={plan.sessionsTotal} />
+                        <p className="num mt-1.5 text-[11px] text-ink/55">
+                          {plan.sessionsDone} of {plan.sessionsTotal} sessions
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        ) : null}
+
+        {view === "appointments" ? (
+          <div className="space-y-4">
+            <Card>
+              <SectionHeader
+                title="Upcoming appointments"
+                icon={<CalendarDays className="h-4 w-4" />}
+                action={
+                  <Button size="sm" icon={<CalendarPlus className="h-4 w-4" />} onClick={() => setApptModal({ open: true })} type="button">
+                    New appointment
+                  </Button>
+                }
+              />
+              {upcoming.length === 0 ? (
+                <EmptyState
+                  title="No upcoming appointments"
+                  hint="Book a visit with your responsible doctor"
+                  icon={<CalendarDays className="h-5 w-5" />}
+                />
+              ) : (
+                upcoming.map((a) => <AppointmentRow key={a.id} appt={a} showDoctor canEdit onCancel={() => cancel(a)} />)
+              )}
+            </Card>
+
+            <Card>
+              <SectionHeader title="Visit history" subtitle="Previous appointments and their status" icon={<ClipboardList className="h-4 w-4" />} />
+              {past.length === 0 ? (
+                <EmptyState title="No previous visits" />
+              ) : (
+                past.map((a) => <AppointmentRow key={a.id} appt={a} showDoctor canEdit={false} />)
+              )}
+            </Card>
+          </div>
+        ) : null}
+
+        {view === "diet" ? (
+          <div className="space-y-3">
+            {data.dietPlans.length === 0 ? (
+              <Card>
+                <EmptyState title="No diet plans" hint="Your responsible doctor will add one soon" icon={<Salad className="h-5 w-5" />} />
+              </Card>
+            ) : (
+              data.dietPlans.map((diet) => (
+                <DietCard key={diet.id} plan={diet} meals={data.meals.filter((m) => m.dietPlanId === diet.id)} canEdit={false} />
+              ))
+            )}
+          </div>
+        ) : null}
+
+        {view === "treatment" ? (
+          <div className="space-y-3">
+            {data.plans.length === 0 ? (
+              <Card>
+                <EmptyState title="No treatment plans" icon={<ClipboardList className="h-5 w-5" />} />
+              </Card>
+            ) : (
+              data.plans.map((plan) => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  doses={data.doses.filter((d) => d.planId === plan.id)}
+                  doseLogs={data.doseLogs}
+                  canEdit={false}
+                  canLog
+                  onLogDose={(dose) => void logDose(dose.id)}
+                />
+              ))
+            )}
+
+            {data.doseLogs.length > 0 ? (
+              <Card>
+                <SectionHeader title="Your dose log" icon={<Check className="h-4 w-4" />} />
+                <div className="max-h-72 divide-y divide-ink/6 overflow-y-auto">
+                  {data.doseLogs.slice(0, 30).map((log) => (
+                    <div key={log.id} className="flex items-center justify-between gap-3 px-5 py-2.5">
+                      <p className="text-[12px] font-medium text-ink">{log.medicine ?? "Dose"}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[11px] text-ink/50">{fmtDateTime(log.takenAt)}</span>
+                        <button
+                          type="button"
+                          onClick={() => run(() => api("DELETE", `/api/dose-logs/${log.id}`), "Log entry removed")}
+                          className="rounded p-1 text-ink/35 hover:bg-berry-100 hover:text-berry-600"
+                          aria-label="Delete log entry"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            ) : null}
+          </div>
+        ) : null}
+
+        {view === "records" ? (
+          <div className="space-y-3">
+            {data.records.length === 0 ? (
+              <Card>
+                <EmptyState title="No medical records" icon={<Stethoscope className="h-5 w-5" />} />
+              </Card>
+            ) : (
+              data.records.map((record) => <RecordCard key={record.id} record={record} canEdit={false} />)
+            )}
+          </div>
+        ) : null}
+
+        {view === "profile" ? (
+          <div className="grid gap-4 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <SectionHeader
+                title="My details"
+                subtitle="You can update your personal info and measurements"
+                icon={<UserCog className="h-4 w-4" />}
+                action={
+                  <Button size="sm" onClick={() => setProfileModal(true)} type="button">
+                    Edit
+                  </Button>
+                }
+              />
+              <div className="grid gap-3 px-5 py-4 sm:grid-cols-2">
+                <div className="flex items-center gap-3 sm:col-span-2">
+                  <Avatar name={me.fullName} hue={me.avatarHue} size={56} />
+                  <div>
+                    <p className="font-display text-base font-bold text-ink">{me.fullName}</p>
+                    <p className="text-xs text-ink/55">{me.email}</p>
+                    <Badge tone="pine" className="mt-1">
+                      Client account
+                    </Badge>
+                  </div>
+                </div>
+                {[
+                  { label: "Phone number", value: me.phone ?? "—" },
+                  { label: "Date of birth", value: me.birthDate ? fmtDate(me.birthDate) : "—" },
+                  { label: "Gender", value: me.gender === "male" ? "Male" : me.gender === "female" ? "Female" : "—" },
+                  { label: "Blood type", value: me.bloodType ?? "—" },
+                  { label: "Height", value: me.heightCm ? `${me.heightCm} cm` : "—" },
+                  { label: "Current weight", value: me.weightKg ? `${me.weightKg} kg` : "—" },
+                  { label: "Target weight", value: me.targetWeightKg ? `${me.targetWeightKg} kg` : "—" },
+                  { label: "Allergies", value: me.allergies ?? "—" },
+                ].map((item) => (
+                  <div key={item.label} className="rounded-xl bg-sand-100 px-3.5 py-2.5">
+                    <p className="text-[10px] text-ink/50">{item.label}</p>
+                    <p className="num mt-0.5 text-[13px] font-semibold text-ink">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <div className="space-y-4">
+              <Card>
+                <SectionHeader title="Responsible doctor" icon={<Stethoscope className="h-4 w-4" />} />
+                {myDoctor ? (
+                  <div className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar name={myDoctor.fullName} hue={myDoctor.avatarHue} size={46} />
+                      <div className="min-w-0">
+                        <p className="truncate text-[13px] font-semibold text-ink">{myDoctor.fullName}</p>
+                        <p className="truncate text-[11px] text-ink/55">{myDoctor.specialization ?? "—"}</p>
+                      </div>
+                    </div>
+                    {myDoctor.bio ? <p className="mt-3 text-[11px] leading-5 text-ink/60">{myDoctor.bio}</p> : null}
+                    {assignment?.note ? (
+                      <p className="mt-3 rounded-lg bg-iris-50 px-3 py-2 text-[11px] text-iris-700">
+                        Assignment note: {assignment.note}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <EmptyState title="No doctor assigned yet" hint="Clinic management will assign one for you" />
+                )}
+              </Card>
+
+              <Card>
+                <SectionHeader title="Weight progress" icon={<Scale className="h-4 w-4" />} />
+                <div className="space-y-3 px-5 py-4">
+                  {me.weightKg && me.targetWeightKg ? (
+                    <>
+                      <div>
+                        <div className="mb-1 flex justify-between text-[11px] text-ink/55">
+                          <span>Target {me.targetWeightKg} kg</span>
+                          <span>Current {me.weightKg} kg</span>
+                        </div>
+                        <Bar
+                          value={Math.abs(me.weightKg - me.targetWeightKg)}
+                          max={Math.max(me.weightKg, me.targetWeightKg)}
+                          tone="bg-clay-500"
+                        />
+                      </div>
+                      <p className="text-[11px] text-ink/55">
+                        Current gap: {Math.abs(Math.round((me.weightKg - me.targetWeightKg) * 10) / 10)} kg — update your weight
+                        from the Edit button after every measurement.
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs text-ink/50">Record your weight and height first to see your progress.</p>
+                  )}
+                </div>
+              </Card>
+            </div>
+          </div>
+        ) : null}
+
+        {view === "notifications" ? (
+          <Card>
+            <SectionHeader
+              title="Notifications"
+              subtitle={`${data.stats.unreadNotifications} unread`}
+              icon={<Bell className="h-4 w-4" />}
+              action={
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => run(() => api("PATCH", "/api/notifications/all", {}), "All notifications marked as read")}
+                  type="button"
+                >
+                  Mark all as read
+                </Button>
+              }
+            />
+            {data.notifications.length === 0 ? (
+              <EmptyState title="No notifications" icon={<Bell className="h-5 w-5" />} />
+            ) : (
+              <div className="divide-y divide-ink/6">
+                {data.notifications.map((n) => (
+                  <div key={n.id} className={`flex items-start gap-3 px-5 py-3.5 ${n.readAt ? "opacity-60" : ""}`}>
+                    <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.readAt ? "bg-sand-300" : "bg-clay-500"}`} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-[13px] font-semibold text-ink">{n.title}</p>
+                        <Badge tone={n.kind === "warning" ? "clay" : "pine"}>{n.kind}</Badge>
+                      </div>
+                      {n.body ? <p className="mt-0.5 text-[11px] leading-5 text-ink/60">{n.body}</p> : null}
+                      <p className="mt-1 text-[10px] text-ink/40">
+                        {fmtRelative(n.createdAt)} · {fmtTime(n.createdAt)}
+                        {n.actorName ? ` · ${n.actorName}` : ""}
+                      </p>
+                    </div>
+                    <Button size="sm" variant="ghost" onClick={() => markRead(n.id, !n.readAt)} type="button">
+                      {n.readAt ? "Mark unread" : "Mark read"}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        ) : null}
+      </Shell>
+
+      {apptModal.open ? (
+        <AppointmentForm
+          open
+          onClose={() => setApptModal({ open: false })}
+          onDone={refresh}
+          clients={[me]}
+          doctors={data.doctors}
+          initial={apptModal.appt ?? null}
+          lockClientId={me.id}
+          canPickDoctor={false}
+          canSetStatus={false}
+          defaultDoctorId={myDoctor?.id}
+        />
+      ) : null}
+      {profileModal ? <ProfileForm open onClose={() => setProfileModal(false)} onDone={refresh} me={me} /> : null}
+    </>
+  );
+}
