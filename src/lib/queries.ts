@@ -338,7 +338,7 @@ export async function loadScopedData(user: ProfileDTO): Promise<Bootstrap> {
   const today = startOfDay();
   const todayEnd = endOfDay();
   const upcoming = appointmentList.filter(
-    (a) => a.status === "scheduled" && new Date(a.scheduledAt) >= new Date(),
+    (a) => ["scheduled", "pending_doctor", "pending_client"].includes(a.status) && new Date(a.scheduledAt) >= new Date(),
   );
   const todays = appointmentList.filter((a) => {
     const when = new Date(a.scheduledAt);
