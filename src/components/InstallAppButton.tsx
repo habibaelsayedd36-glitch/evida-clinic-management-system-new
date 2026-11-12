@@ -39,6 +39,10 @@ export default function InstallAppButton() {
   }, []);
 
   async function install() {
+    if (isIOS) {
+      window.location.assign("/install");
+      return;
+    }
     if (promptEvent) {
       await promptEvent.prompt();
       const choice = await promptEvent.userChoice;
