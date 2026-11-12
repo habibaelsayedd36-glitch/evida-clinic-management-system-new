@@ -164,3 +164,49 @@
     transform: none;
   }
 }
+
+
+/* Small-screen layout safeguards */
+@media (max-width: 640px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+
+  main {
+    min-width: 0;
+  }
+
+  main > div {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  table {
+    max-width: 100%;
+  }
+
+  img,
+  video,
+  canvas {
+    max-width: 100%;
+  }
+
+  .fixed[role="dialog"] > div {
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+  }
+}
