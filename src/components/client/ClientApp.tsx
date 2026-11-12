@@ -431,7 +431,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
         {view === "invoices" ? (
           <div className="space-y-4">
             {myInvoices.length === 0 ? (
-              <Card><EmptyState title="No invoices yet" hint="Your invoices will appear here after a completed visit." icon={<ClipboardList className="h-5 w-5" />}} /></Card>
+              <Card><EmptyState title="No invoices yet" hint="Your invoices will appear here after a completed visit." icon={<ClipboardList className="h-5 w-5" />} /></Card>
             ) : myInvoices.map((invoice) => (
               <Card key={invoice.id} className="p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
