@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { invoices, invoicePayments, paymobPaymentAttempts } from "@/db/schema";
@@ -55,7 +55,11 @@ export async function POST(request: NextRequest) {
     if (attempt.status === "paid" || attempt.status === "review") {
       return Response.json({ received: true });
     }
-    if (attempt.status !== "pending") return Response.json({ received: true });
+    // A late successful callback may arrive after the 45-minute stale-attempt
+    // cleanup. Do not discard it: verify it fully and reconcile the invoice.
+    if (attempt.status !== "pending" && attempt.status !== "failed") {
+      return Response.json({ received: true });
+    }
 
     const successful =
       transaction.success === true &&
@@ -75,7 +79,7 @@ export async function POST(request: NextRequest) {
     const outcome = await db.transaction(async (tx) => {
       const [current] = await tx.select().from(paymobPaymentAttempts)
         .where(eq(paymobPaymentAttempts.id, attempt.id)).limit(1);
-      if (!current || current.status !== "pending") return current?.status ?? "missing";
+      if (!current || (current.status !== "pending" && current.status !== "failed")) return current?.status ?? "missing";
 
       const [invoice] = await tx.select().from(invoices)
         .where(eq(invoices.id, current.invoiceId)).limit(1);
@@ -94,7 +98,7 @@ export async function POST(request: NextRequest) {
         })
         .where(and(
           eq(paymobPaymentAttempts.id, current.id),
-          eq(paymobPaymentAttempts.status, "pending"),
+          inArray(paymobPaymentAttempts.status, ["pending", "failed"]),
           isNull(paymobPaymentAttempts.paymobTransactionId),
         ))
         .returning({ id: paymobPaymentAttempts.id });
