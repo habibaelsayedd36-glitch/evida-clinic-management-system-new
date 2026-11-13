@@ -455,10 +455,21 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
     }
   }
 
+  // A completed visit must have a real price before its invoice is created.
+  // Prefer the price submitted in this update over the previously stored value.
+  const completingNow = patch.status === "completed" && appt.status !== "completed";
+  const invoiceAmount = patch.price !== undefined ? patch.price : appt.price;
+  if (completingNow) {
+    assert(
+      typeof invoiceAmount === "number" && Number.isSafeInteger(invoiceAmount) && invoiceAmount > 0,
+      "Enter the appointment price (EGP) before marking it as completed.",
+    );
+  }
+
   await db.update(appointments).set(patch).where(eq(appointments.id, apptId));
 
   // Completing an appointment creates one permanent visit record and one invoice.
-  if (patch.status === "completed" && appt.status !== "completed") {
+  if (completingNow) {
     const existingVisit = await db.select({ id: medicalRecords.id }).from(medicalRecords).where(eq(medicalRecords.appointmentId, apptId)).limit(1);
     if (!existingVisit.length) {
       await db.insert(medicalRecords).values({
@@ -478,7 +489,7 @@ export async function updateAppointment(user: ProfileDTO, id: string, body: Body
         appointmentId: apptId,
         clientId: appt.clientId,
         doctorId: appt.doctorId,
-        totalAmount: appt.price ?? 0,
+        totalAmount: invoiceAmount as number,
       });
     }
   }
