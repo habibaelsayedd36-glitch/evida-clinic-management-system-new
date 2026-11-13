@@ -78,6 +78,18 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   const weightToTarget =
     me.weightKg && me.targetWeightKg ? Math.max(0, Math.round((me.weightKg - me.targetWeightKg) * 10) / 10) : null;
 
+  const weightHistory = [...data.records]
+    .filter((record) => typeof record.weightKg === "number" && record.weightKg > 0)
+    .sort((a, b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime())
+    .slice(-6);
+  const chartValues = weightHistory.map((record) => record.weightKg as number);
+  const chartMin = chartValues.length ? Math.min(...chartValues) - 1 : 0;
+  const chartMax = chartValues.length ? Math.max(...chartValues) + 1 : 1;
+  const chartPoints = chartValues.map((weight, index) => ({
+    x: chartValues.length === 1 ? 50 : 8 + (index / (chartValues.length - 1)) * 84,
+    y: 78 - ((weight - chartMin) / (chartMax - chartMin || 1)) * 58,
+    weight,
+  }));
   const startingWeight = [...data.records]
     .filter((record) => typeof record.weightKg === "number" && record.weightKg > 0)
     .sort((a, b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime())[0]?.weightKg ?? null;
@@ -151,7 +163,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
         {view === "home" ? (
           <div className="space-y-5">
             <Card className="overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-4 bg-iris-700 px-5 py-5 text-sand-50">
+              <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-[#30264f] via-iris-700 to-[#647b69] px-6 py-6 text-sand-50 sm:px-7">
                 <div className="min-w-0">
                   <p className="text-[11px] tracking-[0.16em] text-iris-100/80">NEXT APPOINTMENT</p>
                   {next ? (
@@ -254,6 +266,26 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                 </div>
               </Card>
             ) : null}
+
+            <Card className="overflow-hidden border border-[#e9e4dc] bg-[#fffdfa] shadow-[0_5px_20px_rgba(40,30,20,0.035)]">
+              <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5">
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.17em] text-ink/40">Your journey</p><h2 className="mt-1 font-display text-lg font-bold text-ink">Weight trend</h2><p className="mt-1 text-xs text-ink/50">Your latest recorded measurements</p></div>
+                {me.targetWeightKg ? <Badge tone="pine">Target · {me.targetWeightKg} kg</Badge> : null}
+              </div>
+              {chartPoints.length > 1 ? (
+                <div className="px-4 pb-4 pt-3 sm:px-5">
+                  <div className="mb-2 flex items-end justify-between"><p className="num text-2xl font-bold text-ink">{me.weightKg ? me.weightKg + " kg" : "—"}</p><p className="text-[10px] text-ink/40">{weightHistory.length} measurements</p></div>
+                  <svg viewBox="0 0 100 90" className="h-36 w-full overflow-visible" role="img" aria-label="Weight trend chart">
+                    {[20, 49, 78].map((y) => <line key={y} x1="7" x2="94" y1={y} y2={y} stroke="#e9e4dc" strokeDasharray="1.5 2" strokeWidth="0.6" />)}
+                    <polyline points={chartPoints.map((point) => point.x + "," + point.y).join(" ")} fill="none" stroke="#718b73" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+                    {chartPoints.map((point, index) => <g key={index}><circle cx={point.x} cy={point.y} r="2.3" fill="#fffdfa" stroke="#718b73" strokeWidth="1.3" /><text x={point.x} y={point.y - 5} textAnchor="middle" fontSize="3.5" fill="#514477" fontWeight="600">{point.weight}</text></g>)}
+                  </svg>
+                  <div className="flex justify-between text-[9px] text-ink/40"><span>{fmtDate(weightHistory[0].visitDate)}</span><span>{fmtDate(weightHistory[weightHistory.length - 1].visitDate)}</span></div>
+                </div>
+              ) : (
+                <div className="mx-5 mb-5 mt-3 rounded-xl border border-dashed border-[#ded8cd] bg-[#faf8f3] px-4 py-5 text-center"><Scale className="mx-auto h-5 w-5 text-ink/30" /><p className="mt-2 text-xs font-semibold text-ink/65">Your chart is getting ready</p><p className="mt-1 text-[11px] text-ink/45">More recorded measurements will create your weight trend chart.</p></div>
+              )}
+            </Card>
 
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
