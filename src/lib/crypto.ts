@@ -1,6 +1,20 @@
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 
-const SECRET = process.env.AUTH_SECRET || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "evida-clinic-dev-secret";
+// Never sign production sessions with a public or hard-coded fallback.
+// In development, use a process-local random key when AUTH_SECRET is absent.
+const DEVELOPMENT_SECRET = randomBytes(32).toString("base64url");
+
+function getAuthSecret(): string {
+  const configured = process.env.AUTH_SECRET;
+  if (configured && configured.length >= 32) return configured;
+  if (configured && configured.length < 32) {
+    throw new Error("AUTH_SECRET must contain at least 32 characters");
+  }
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("AUTH_SECRET is required in production");
+  }
+  return DEVELOPMENT_SECRET;
+}
 
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 
@@ -27,20 +41,20 @@ function b64url(input: Buffer | string): string {
 
 export function signToken(payload: Omit<TokenPayload, "exp">, ttl = TOKEN_TTL_SECONDS): string {
   const body = b64url(JSON.stringify({ ...payload, exp: Math.floor(Date.now() / 1000) + ttl }));
-  const signature = createHmac("sha256", SECRET).update(body).digest("base64url");
+  const signature = createHmac("sha256", getAuthSecret()).update(body).digest("base64url");
   return `${body}.${signature}`;
 }
 
 export function verifyToken(token: string): TokenPayload | null {
   const [body, signature] = token.split(".");
   if (!body || !signature) return null;
-  const expected = createHmac("sha256", SECRET).update(body).digest();
+  const expected = createHmac("sha256", getAuthSecret()).update(body).digest();
   const provided = Buffer.from(signature, "base64url");
   if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) return null;
   try {
     const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as TokenPayload;
-    if (!payload.uid || typeof payload.exp !== "number") return null;
-    if (payload.exp * 1000 < Date.now()) return null;
+    if (typeof payload.uid !== "string" || !payload.uid || typeof payload.exp !== "number") return null;
+    if (!Number.isFinite(payload.exp) || payload.exp * 1000 < Date.now()) return null;
     return payload;
   } catch {
     return null;
