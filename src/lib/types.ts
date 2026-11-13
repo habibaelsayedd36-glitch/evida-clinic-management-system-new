@@ -66,6 +66,7 @@ export type HistoryDTO = {
 
 export type RecordDTO = {
   id: string;
+  appointmentId: string | null;
   clientId: string;
   doctorId: string | null;
   title: string;
