@@ -78,6 +78,18 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   const weightToTarget =
     me.weightKg && me.targetWeightKg ? Math.max(0, Math.round((me.weightKg - me.targetWeightKg) * 10) / 10) : null;
 
+  const startingWeight = [...data.records]
+    .filter((record) => typeof record.weightKg === "number" && record.weightKg > 0)
+    .sort((a, b) => new Date(a.visitDate).getTime() - new Date(b.visitDate).getTime())[0]?.weightKg ?? null;
+  const goalProgress = (() => {
+    if (!me.weightKg || !me.targetWeightKg || !startingWeight) return null;
+    const totalChange = Math.abs(startingWeight - me.targetWeightKg);
+    if (totalChange === 0) return me.weightKg === me.targetWeightKg ? 100 : 0;
+    const achievedChange = startingWeight > me.targetWeightKg ? startingWeight - me.weightKg : me.weightKg - startingWeight;
+    return Math.min(100, Math.max(0, Math.round((achievedChange / totalChange) * 100)));
+  })();
+  const goalRemaining = me.weightKg && me.targetWeightKg ? Math.round(Math.abs(me.weightKg - me.targetWeightKg) * 10) / 10 : null;
+
   function printInvoice(invoice: InvoiceDTO) {
     const popup = window.open("", "_blank", "width=900,height=700");
     if (!popup) {
@@ -203,6 +215,45 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
               <StatTile label="Scheduled doses" value={activeDoses.length} hint={`${data.doseLogs.length} logged doses`} tone="moss" icon={<Pill className="h-5 w-5" />} />
               <StatTile label="Past visits" value={past.length} hint={`${data.records.length} medical records`} icon={<CalendarDays className="h-5 w-5" />} />
             </div>
+
+
+            {me.targetWeightKg ? (
+              <Card className="overflow-hidden">
+                <div className="bg-gradient-to-br from-iris-700 via-iris-600 to-moss-700 px-5 py-5 text-white sm:px-6">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">Your personal goal</p>
+                      <h2 className="mt-1 font-display text-xl font-bold">Every step counts. Keep going!</h2>
+                      <p className="mt-1 text-xs text-white/75">Your progress is built one healthy choice at a time.</p>
+                    </div>
+                    <div className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-right backdrop-blur-sm">
+                      <p className="text-[10px] text-white/70">Target weight</p>
+                      <p className="num text-xl font-bold">{me.targetWeightKg} kg</p>
+                    </div>
+                  </div>
+                  {goalProgress !== null ? (
+                    <>
+                      <div className="mt-5 flex items-end justify-between gap-3">
+                        <div><p className="text-[10px] uppercase tracking-wider text-white/70">Goal achieved</p><p className="num mt-0.5 text-4xl font-bold">{goalProgress}%</p></div>
+                        <div className="text-right"><p className="text-[10px] text-white/70">Still to go</p><p className="num text-2xl font-bold">{goalRemaining} kg</p></div>
+                      </div>
+                      <div className="mt-3 h-3 overflow-hidden rounded-full bg-black/20 ring-1 ring-white/15">
+                        <div className="h-full rounded-full bg-gradient-to-r from-amber-200 to-white transition-all duration-700" style={{ width: String(goalProgress) + "%" }} />
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-[10px] text-white/70"><span>Starting: {startingWeight} kg</span><span>Current: {me.weightKg} kg</span></div>
+                      <p className="mt-4 rounded-xl bg-white/10 px-3 py-2.5 text-xs leading-5 text-white/90">
+                        {goalProgress >= 100 ? "You did it! You've reached your target. Celebrate your progress and keep following your care team's guidance." : goalProgress >= 75 ? "You're so close! Your consistency is paying off. Keep following your plan." : goalProgress >= 40 ? "Look how far you've come. Stay consistent — you're making real progress." : "A great journey starts with one step. Keep showing up for yourself; we're cheering you on."}
+                      </p>
+                    </>
+                  ) : (
+                    <div className="mt-5 rounded-xl bg-white/10 px-4 py-3 text-sm leading-6 text-white/90">
+                      Your target is set. Your progress percentage will appear after your starting weight is recorded by your care team.
+                      {goalRemaining !== null ? <p className="mt-1 font-semibold">Current distance to target: {goalRemaining} kg</p> : null}
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ) : null}
 
             <div className="grid gap-4 lg:grid-cols-2">
               <Card>
