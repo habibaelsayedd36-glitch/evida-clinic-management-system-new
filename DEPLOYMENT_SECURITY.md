@@ -22,6 +22,10 @@ The application caps each Node.js process pool at five connections. On serverles
 - Security response headers are configured in `next.config.ts`.
 - Do not use the CI-only `AUTH_SECRET` value in Vercel.
 
+## GitHub Actions secrets
+
+The appointment-reminders workflow also needs the repository secrets `EVIDA_APP_URL` (the production URL, for example `https://evida-clinicc-omega.vercel.app`) and `CRON_SECRET` (the same value configured in Vercel). Keep both private.
+
 ## Existing production data
 
 The production bootstrap no longer creates the sample accounts (`admin@evida.clinic`, `omnia@evida.clinic`, etc.). This does not automatically delete accounts from a database that was already seeded. If the live database was initialized before this change, review the sample accounts in the admin panel/database, change any passwords that were ever shared, and deactivate or delete unused demo profiles only after confirming they contain no real clinic data.
