@@ -70,7 +70,26 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
     [data.appointments],
   );
   const next = upcoming[0] ?? null;
-  const past = data.appointments.filter((a) => new Date(a.scheduledAt) < new Date());
+  const pastAppointments = data.appointments.filter((a) => new Date(a.scheduledAt) < new Date());
+  const linkedAppointmentIds = new Set(
+    data.records.map((record) => record.appointmentId).filter((id): id is string => Boolean(id)),
+  );
+  const visitHistory = [
+    ...data.records
+      .filter((record) => new Date(`${record.visitDate}T00:00:00`) <= new Date())
+      .map((record) => ({
+        type: "record" as const,
+        date: new Date(`${record.visitDate}T00:00:00`).getTime(),
+        record,
+      })),
+    ...pastAppointments
+      .filter((appointment) => !linkedAppointmentIds.has(appointment.id))
+      .map((appointment) => ({
+        type: "appointment" as const,
+        date: new Date(appointment.scheduledAt).getTime(),
+        appointment,
+      })),
+  ].sort((a, b) => b.date - a.date);
   const myInvoices = data.invoices.filter((invoice) => invoice.clientId === me.id);
   const activePlans = data.plans.filter((p) => p.status === "active");
   const activeDiets = data.dietPlans.filter((d) => d.status === "active");
@@ -333,11 +352,26 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
             </Card>
 
             <Card>
-              <SectionHeader title="Visit history" subtitle="Previous appointments and their status" icon={<ClipboardList className="h-4 w-4" />} />
-              {past.length === 0 ? (
+              <SectionHeader title="Visit history" subtitle="Previous visits and appointment status" icon={<ClipboardList className="h-4 w-4" />} />
+              {visitHistory.length === 0 ? (
                 <EmptyState title="No previous visits" />
               ) : (
-                past.map((a) => <AppointmentRow key={a.id} appt={a} showDoctor canEdit={false} />)
+                visitHistory.map((item) =>
+                  item.type === "record" ? (
+                    <div key={`record-${item.record.id}`} className="mb-2 rounded-xl border border-ink/8 bg-white px-3.5 py-3 last:mb-0">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-[13px] font-semibold text-ink">{item.record.title}</p>
+                          <p className="mt-0.5 text-[11px] text-ink/55">{fmtDate(item.record.visitDate)} · {item.record.doctorName ?? "Clinic visit"}</p>
+                        </div>
+                        <Badge tone="pine">Visit recorded</Badge>
+                      </div>
+                      {item.record.diagnosis ? <p className="mt-2 text-xs leading-5 text-ink/65">{item.record.diagnosis}</p> : null}
+                    </div>
+                  ) : (
+                    <AppointmentRow key={item.appointment.id} appt={item.appointment} showDoctor canEdit={false} />
+                  ),
+                )
               )}
             </Card>
           </div>
