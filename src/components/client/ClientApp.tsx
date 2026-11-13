@@ -70,18 +70,24 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
     [data.appointments],
   );
   const next = upcoming[0] ?? null;
-  const pastAppointments = data.appointments.filter((a) => new Date(a.scheduledAt) < new Date());
+  const pastAppointments = data.appointments.filter((a) => new Date(a.scheduledAt).getTime() <= Date.now());
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const pastRecords = data.records.filter((record) => {
+    // PostgreSQL date values may arrive as YYYY-MM-DD or as an ISO timestamp.
+    // Compare the calendar date, not midnight timestamps, to avoid timezone shifts.
+    const visitDate = String(record.visitDate ?? "").slice(0, 10);
+    return /^\\d{4}-\\d{2}-\\d{2}$/.test(visitDate) && visitDate <= todayKey;
+  });
   const linkedAppointmentIds = new Set(
-    data.records.map((record) => record.appointmentId).filter((id): id is string => Boolean(id)),
+    pastRecords.map((record) => record.appointmentId).filter((id): id is string => Boolean(id)),
   );
   const visitHistory = [
-    ...data.records
-      .filter((record) => new Date(`${record.visitDate}T00:00:00`) <= new Date())
-      .map((record) => ({
-        type: "record" as const,
-        date: new Date(`${record.visitDate}T00:00:00`).getTime(),
-        record,
-      })),
+    ...pastRecords.map((record) => ({
+      type: "record" as const,
+      date: new Date(`${String(record.visitDate).slice(0, 10)}T00:00:00`).getTime(),
+      record,
+    })),
     ...pastAppointments
       .filter((appointment) => !linkedAppointmentIds.has(appointment.id))
       .map((appointment) => ({
