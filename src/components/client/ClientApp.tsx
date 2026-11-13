@@ -168,15 +168,15 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
       window.removeEventListener("afterprint", cleanup);
     };
     window.addEventListener("afterprint", cleanup, { once: true });
-    window.requestAnimationFrame(() => {
-      try {
-        window.print();
-      } catch (error) {
-        cleanup();
-        console.error("[invoice print]", error);
-        window.alert("Printing is not available in this browser. Try your browser's Share or Print option.");
-      }
-    });
+    // Call print synchronously from the button click. Some mobile browsers
+    // drop the user-activation permission when print() is deferred to rAF.
+    try {
+      window.print();
+    } catch (error) {
+      cleanup();
+      console.error("[invoice print]", error);
+      window.alert("Printing is not available in this browser. Try your browser's Share or Print option.");
+    }
   }
 
   async function payInvoice(invoice: InvoiceDTO) {
