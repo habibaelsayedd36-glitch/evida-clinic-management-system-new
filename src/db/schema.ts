@@ -275,3 +275,18 @@ export const notifications = pgTable(
   },
   (t) => [index("notifications_user_idx").on(t.userId)],
 );
+
+export const paymobPaymentAttempts = pgTable(
+  "paymob_payment_attempts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    invoiceId: uuid("invoice_id").notNull().references(() => invoices.id, { onDelete: "cascade" }),
+    amount: integer("amount").notNull(),
+    paymobOrderId: text("paymob_order_id").unique(),
+    paymobTransactionId: text("paymob_transaction_id").unique(),
+    status: text("status").notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+  },
+  (t) => [index("paymob_payment_attempts_invoice_idx").on(t.invoiceId)],
+);
