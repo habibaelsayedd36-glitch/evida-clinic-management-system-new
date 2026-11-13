@@ -77,7 +77,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
     // PostgreSQL date values may arrive as YYYY-MM-DD or as an ISO timestamp.
     // Compare the calendar date, not midnight timestamps, to avoid timezone shifts.
     const visitDate = String(record.visitDate ?? "").slice(0, 10);
-    return /^\\d{4}-\\d{2}-\\d{2}$/.test(visitDate) && visitDate <= todayKey;
+    return /^\d{4}-\d{2}-\d{2}$/.test(visitDate) && visitDate <= todayKey;
   });
   const linkedAppointmentIds = new Set(
     pastRecords.map((record) => record.appointmentId).filter((id): id is string => Boolean(id)),
