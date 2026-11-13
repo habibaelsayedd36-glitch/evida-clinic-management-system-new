@@ -46,11 +46,16 @@ export default function InstallAppButton() {
       return;
     }
     if (promptEvent) {
-      await promptEvent.prompt();
-      const choice = await promptEvent.userChoice;
-      if (choice.outcome === "accepted") setInstalled(true);
-      setPromptEvent(null);
-      return;
+      try {
+        await promptEvent.prompt();
+        const choice = await promptEvent.userChoice;
+        if (choice.outcome === "accepted") setInstalled(true);
+        setPromptEvent(null);
+        return;
+      } catch (error) {
+        console.error("EVIDA install prompt failed:", error);
+        setPromptEvent(null);
+      }
     }
     setShowHelp(true);
   }
