@@ -161,231 +161,71 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
         }
       >
         {view === "home" ? (
-          <div className="space-y-5">
-            <Card className="overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-4 bg-gradient-to-r from-[#30264f] via-iris-700 to-[#647b69] px-6 py-6 text-sand-50 sm:px-7">
-                <div className="min-w-0">
-                  <p className="text-[11px] tracking-[0.16em] text-iris-100/80">NEXT APPOINTMENT</p>
-                  {next ? (
-                    <>
-                      <p className="num mt-1.5 font-display text-2xl font-bold">{fmtDateTime(next.scheduledAt)}</p>
-                      <p className="mt-1 text-xs text-iris-100/85">
-                        {next.kind} · {next.durationMin} min · {next.location ?? "The clinic"}
-                      </p>
-                    </>
-                  ) : (
-                    <p className="mt-1.5 font-display text-xl font-bold">No upcoming appointment</p>
-                  )}
+          <div className="space-y-6 pb-8">
+            <section className="relative isolate overflow-hidden rounded-[2rem] bg-[#211b35] px-6 py-7 text-white shadow-[0_24px_60px_-30px_rgba(33,27,53,.55)] sm:px-9 sm:py-9">
+              <div className="pointer-events-none absolute -right-12 -top-24 -z-10 h-72 w-72 rounded-full border-[36px] border-white/[0.06]" />
+              <div className="pointer-events-none absolute -bottom-32 right-1/3 -z-10 h-64 w-64 rounded-full bg-[#8c789e]/20 blur-3xl" />
+              <div className="flex flex-wrap items-start justify-between gap-6">
+                <div className="max-w-xl">
+                  <p className="text-[10px] font-semibold uppercase tracking-[.28em] text-[#d8c9e8]">EVIDA · YOUR WELLNESS SPACE</p>
+                  <h2 className="mt-3 font-display text-3xl font-semibold leading-tight tracking-tight sm:text-[2.7rem]">A healthier you,<br /><span className="text-[#d8c9e8]">one step at a time.</span></h2>
+                  <p className="mt-3 max-w-md text-sm leading-6 text-white/65">Your appointments, care plans and progress — thoughtfully brought together in one place.</p>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <Button onClick={() => setApptModal({ open: true })} type="button" className="!rounded-full !bg-[#e8dced] !px-5 !text-[#302542] hover:!bg-white">Book an appointment <CalendarPlus className="ml-2 h-4 w-4" /></Button>
+                    <button type="button" onClick={() => setView("profile")} className="rounded-full border border-white/20 px-5 py-2.5 text-xs font-semibold text-white/85 transition hover:bg-white/10">View my profile</button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                  {myDoctor ? (
-                    <div className="flex items-center gap-2.5 rounded-xl bg-iris-800/60 px-3 py-2">
-                      <Avatar name={myDoctor.fullName} hue={myDoctor.avatarHue} size={36} />
-                      <div>
-                        <p className="text-[13px] font-semibold">{myDoctor.fullName}</p>
-                        <p className="text-[10px] text-iris-100/75">{myDoctor.specialization ?? "Responsible doctor"}</p>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="rounded-xl bg-iris-600 px-3 py-2 text-[12px] font-semibold text-white">
-                      No doctor assigned yet — clinic management will link you soon
-                    </div>
-                  )}
-                  {next ? (
-                    <Button
-                      variant="outline"
-                      className="!border-sand-50/30 !bg-transparent !text-sand-50 hover:!bg-sand-50/10"
-                      onClick={() => cancel(next)}
-                      type="button"
-                    >
-                      Cancel appointment
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="!border-sand-50/30 !bg-transparent !text-sand-50 hover:!bg-sand-50/10"
-                      onClick={() => setApptModal({ open: true })}
-                      type="button"
-                    >
-                      Book now
-                    </Button>
-                  )}
+                <div className="min-w-[220px] rounded-2xl border border-white/10 bg-white/[0.07] p-4 backdrop-blur-sm sm:min-w-[250px]">
+                  <div className="flex items-center gap-3">
+                    {myDoctor ? <Avatar name={myDoctor.fullName} hue={myDoctor.avatarHue} size={44} /> : <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10"><Stethoscope className="h-5 w-5 text-[#d8c9e8]" /></div>}
+                    <div className="min-w-0"><p className="text-[10px] uppercase tracking-wider text-white/45">Your care team</p><p className="mt-1 truncate text-sm font-semibold">{myDoctor?.fullName ?? "Your doctor"}</p><p className="mt-0.5 text-[11px] text-white/55">{myDoctor?.specialization ?? "Your clinic team"}</p></div>
+                  </div>
+                  <div className="mt-4 border-t border-white/10 pt-3">
+                    <p className="text-[10px] uppercase tracking-wider text-white/45">Next appointment</p>
+                    {next ? <><p className="mt-1 text-sm font-semibold">{fmtDate(next.scheduledAt)}</p><p className="mt-0.5 text-xs text-white/55">{fmtTime(next.scheduledAt)} · {next.kind}</p></> : <p className="mt-1 text-sm text-white/65">Nothing scheduled yet</p>}
+                  </div>
                 </div>
               </div>
-            </Card>
+            </section>
 
-            
+            <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="rounded-2xl border border-[#e9e3ec] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-[11px] font-medium text-ink/50">Current weight</span><Scale className="h-4 w-4 text-[#806b91]" /></div><p className="num mt-3 text-2xl font-semibold text-ink">{me.weightKg ? `${me.weightKg} <span></span>` : "—"}{me.weightKg ? <span className="ml-1 text-xs font-medium text-ink/45">kg</span> : null}</p><p className="mt-1 text-[10px] text-ink/40">{weightToTarget !== null ? `${weightToTarget} kg to your goal` : "Your latest measurement"}</p></div>
+              <div className="rounded-2xl border border-[#e9e3ec] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-[11px] font-medium text-ink/50">Body mass index</span><HeartPulse className="h-4 w-4 text-[#806b91]" /></div><p className="num mt-3 text-2xl font-semibold text-ink">{value ?? "—"}</p><p className="mt-1 text-[10px] text-ink/40">{bmiLabel(value) ?? "Based on your measurements"}</p></div>
+              <div className="rounded-2xl border border-[#e9e3ec] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-[11px] font-medium text-ink/50">Active treatment doses</span><Pill className="h-4 w-4 text-[#806b91]" /></div><p className="num mt-3 text-2xl font-semibold text-ink">{activeDoses.length}</p><p className="mt-1 text-[10px] text-ink/40">{data.doseLogs.length} doses recorded</p></div>
+              <div className="rounded-2xl border border-[#e9e3ec] bg-white p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-[11px] font-medium text-ink/50">Appointments</span><CalendarDays className="h-4 w-4 text-[#806b91]" /></div><p className="num mt-3 text-2xl font-semibold text-ink">{upcoming.length}</p><p className="mt-1 text-[10px] text-ink/40">Upcoming visits</p></div>
+            </section>
 
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <StatTile
-                label="Current weight"
-                value={me.weightKg ? `${me.weightKg} kg` : "—"}
-                hint={weightToTarget !== null ? `${weightToTarget} kg to your target` : undefined}
-                icon={<Scale className="h-5 w-5" />}
-              />
-              <StatTile label="Body mass index" value={value ?? "—"} hint={bmiLabel(value)} tone="clay" icon={<HeartPulse className="h-5 w-5" />} />
-              <StatTile label="Scheduled doses" value={activeDoses.length} hint={`${data.doseLogs.length} logged doses`} tone="moss" icon={<Pill className="h-5 w-5" />} />
-              <StatTile label="Past visits" value={past.length} hint={`${data.records.length} medical records`} icon={<CalendarDays className="h-5 w-5" />} />
-            </div>
-
-
-            {me.targetWeightKg ? (
-              <Card className="overflow-hidden">
-                <div className="bg-gradient-to-br from-iris-700 via-iris-600 to-moss-700 px-5 py-5 text-white sm:px-6">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">Your personal goal</p>
-                      <h2 className="mt-1 font-display text-xl font-bold">Every step counts. Keep going!</h2>
-                      <p className="mt-1 text-xs text-white/75">Your progress is built one healthy choice at a time.</p>
-                    </div>
-                    <div className="rounded-2xl border border-white/20 bg-white/10 px-3 py-2 text-right backdrop-blur-sm">
-                      <p className="text-[10px] text-white/70">Target weight</p>
-                      <p className="num text-xl font-bold">{me.targetWeightKg} kg</p>
-                    </div>
-                  </div>
-                  {goalProgress !== null ? (
-                    <>
-                      <div className="mt-5 flex items-end justify-between gap-3">
-                        <div><p className="text-[10px] uppercase tracking-wider text-white/70">Goal achieved</p><p className="num mt-0.5 text-4xl font-bold">{goalProgress}%</p></div>
-                        <div className="text-right"><p className="text-[10px] text-white/70">Still to go</p><p className="num text-2xl font-bold">{goalRemaining} kg</p></div>
-                      </div>
-                      <div className="mt-3 h-3 overflow-hidden rounded-full bg-black/20 ring-1 ring-white/15">
-                        <div className="h-full rounded-full bg-gradient-to-r from-amber-200 to-white transition-all duration-700" style={{ width: String(goalProgress) + "%" }} />
-                      </div>
-                      <div className="mt-2 flex items-center justify-between text-[10px] text-white/70"><span>Starting: {startingWeight} kg</span><span>Current: {me.weightKg} kg</span></div>
-                      <p className="mt-4 rounded-xl bg-white/10 px-3 py-2.5 text-xs leading-5 text-white/90">
-                        {goalProgress >= 100 ? "You did it! You've reached your target. Celebrate your progress and keep following your care team's guidance." : goalProgress >= 75 ? "You're so close! Your consistency is paying off. Keep following your plan." : goalProgress >= 40 ? "Look how far you've come. Stay consistent — you're making real progress." : "A great journey starts with one step. Keep showing up for yourself; we're cheering you on."}
-                      </p>
-                    </>
-                  ) : (
-                    <div className="mt-5 rounded-xl bg-white/10 px-4 py-3 text-sm leading-6 text-white/90">
-                      Your target is set. Your progress percentage will appear after your starting weight is recorded by your care team.
-                      {goalRemaining !== null ? <p className="mt-1 font-semibold">Current distance to target: {goalRemaining} kg</p> : null}
-                    </div>
-                  )}
+            <section className="grid gap-5 xl:grid-cols-[1.25fr_.75fr]">
+              <Card className="overflow-hidden !rounded-[1.6rem] !border-[#e9e3ec] !shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5 sm:px-6">
+                  <div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#927fa0]">Your progress</p><h3 className="mt-1 font-display text-xl font-semibold text-ink">Weight journey</h3><p className="mt-1 text-xs text-ink/45">A look at your recorded measurements</p></div>
+                  {me.targetWeightKg ? <Badge tone="pine">Goal · {me.targetWeightKg} kg</Badge> : null}
                 </div>
-              </Card>
-            ) : null}
-
-            <Card className="overflow-hidden border border-[#e9e4dc] bg-[#fffdfa] shadow-[0_5px_20px_rgba(40,30,20,0.035)]">
-              <div className="flex flex-wrap items-start justify-between gap-3 px-5 pt-5">
-                <div><p className="text-[10px] font-bold uppercase tracking-[0.17em] text-ink/40">Your journey</p><h2 className="mt-1 font-display text-lg font-bold text-ink">Weight trend</h2><p className="mt-1 text-xs text-ink/50">Your latest recorded measurements</p></div>
-                {me.targetWeightKg ? <Badge tone="pine">Target · {me.targetWeightKg} kg</Badge> : null}
-              </div>
-              {chartPoints.length > 1 ? (
-                <div className="px-4 pb-4 pt-3 sm:px-5">
-                  <div className="mb-2 flex items-end justify-between"><p className="num text-2xl font-bold text-ink">{me.weightKg ? me.weightKg + " kg" : "—"}</p><p className="text-[10px] text-ink/40">{weightHistory.length} measurements</p></div>
-                  <svg viewBox="0 0 100 90" className="h-36 w-full overflow-visible" role="img" aria-label="Weight trend chart">
-                    {[20, 49, 78].map((y) => <line key={y} x1="7" x2="94" y1={y} y2={y} stroke="#e9e4dc" strokeDasharray="1.5 2" strokeWidth="0.6" />)}
-                    <polyline points={chartPoints.map((point) => point.x + "," + point.y).join(" ")} fill="none" stroke="#718b73" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
-                    {chartPoints.map((point, index) => <g key={index}><circle cx={point.x} cy={point.y} r="2.3" fill="#fffdfa" stroke="#718b73" strokeWidth="1.3" /><text x={point.x} y={point.y - 5} textAnchor="middle" fontSize="3.5" fill="#514477" fontWeight="600">{point.weight}</text></g>)}
-                  </svg>
-                  <div className="flex justify-between text-[9px] text-ink/40"><span>{fmtDate(weightHistory[0].visitDate)}</span><span>{fmtDate(weightHistory[weightHistory.length - 1].visitDate)}</span></div>
-                </div>
-              ) : (
-                <div className="mx-5 mb-5 mt-3 rounded-xl border border-dashed border-[#ded8cd] bg-[#faf8f3] px-4 py-5 text-center"><Scale className="mx-auto h-5 w-5 text-ink/30" /><p className="mt-2 text-xs font-semibold text-ink/65">Your chart is getting ready</p><p className="mt-1 text-[11px] text-ink/45">More recorded measurements will create your weight trend chart.</p></div>
-              )}
-            </Card>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-              <Card>
-                <SectionHeader
-                  title="Today's dose schedule"
-                  subtitle="Tap the button once you take the dose"
-                  icon={<Pill className="h-4 w-4" />}
-                  action={
-                    <Button size="sm" variant="ghost" onClick={() => setView("treatment")} type="button">
-                      Treatment plan
-                    </Button>
-                  }
-                />
-                {activeDoses.length === 0 ? (
-                  <EmptyState title="No active doses" hint="Your doctor adds doses along with the plan" icon={<Pill className="h-5 w-5" />} />
-                ) : (
-                  <div className="divide-y divide-ink/6">
-                    {activeDoses.map((dose) => {
-                      const taken = data.doseLogs.some((l) => l.doseId === dose.id && isSameDay(l.takenAt));
-                      return (
-                        <div key={dose.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
-                          <div className="min-w-0">
-                            <p className="truncate text-[13px] font-semibold text-ink">{dose.dosage || "Dose"}</p>
-                            <p className="mt-0.5 text-[11px] text-ink/55">
-                              {dose.dosage ?? "—"} · {dose.frequency ?? "—"} ·{" "}
-                              {dose.timeOfDay ? TIME_LABELS[dose.timeOfDay] ?? dose.timeOfDay : "—"}
-                            </p>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant={taken ? "soft" : "primary"}
-                            onClick={() => (taken ? undefined : logDose(dose.id))}
-                            icon={taken ? <Check className="h-3.5 w-3.5" /> : undefined}
-                            disabled={taken}
-                            type="button"
-                          >
-                            {taken ? "Taken" : "Log dose"}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                {chartPoints.length > 1 ? <div className="px-4 pb-4 pt-2 sm:px-6"><div className="mb-1 flex items-end justify-between"><p className="num text-3xl font-semibold text-ink">{me.weightKg ?? "—"}<span className="ml-1 text-sm font-medium text-ink/40">kg</span></p><p className="text-[10px] text-ink/40">{weightHistory.length} measurements</p></div><svg viewBox="0 0 100 90" className="h-40 w-full overflow-visible" role="img" aria-label="Weight trend chart">{[20,49,78].map(y=><line key={y} x1="7" x2="94" y1={y} y2={y} stroke="#eee8f0" strokeDasharray="1.5 2" strokeWidth=".6" />)}<polyline points={chartPoints.map(p=>p.x+","+p.y).join(" ")} fill="none" stroke="#806b91" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />{chartPoints.map((p,i)=><g key={i}><circle cx={p.x} cy={p.y} r="2.4" fill="#fff" stroke="#806b91" strokeWidth="1.4" /><text x={p.x} y={p.y-5} textAnchor="middle" fontSize="3.5" fill="#514477" fontWeight="600">{p.weight}</text></g>)}</svg><div className="flex justify-between text-[9px] text-ink/40"><span>{fmtDate(weightHistory[0].visitDate)}</span><span>{fmtDate(weightHistory[weightHistory.length-1].visitDate)}</span></div></div> : <div className="mx-5 mb-5 mt-4 rounded-2xl bg-[#f8f5f9] px-4 py-7 text-center"><Scale className="mx-auto h-6 w-6 text-[#9a88a5]" /><p className="mt-2 text-sm font-semibold text-ink/70">Your progress chart starts here</p><p className="mt-1 text-xs text-ink/45">Your chart will grow as your care team records new measurements.</p></div>}
               </Card>
 
-              <Card>
-                <SectionHeader
-                  title="Today's meals"
-                  subtitle={activeDiets[0]?.title ?? "No active plan"}
-                  icon={<UtensilsCrossed className="h-4 w-4" />}
-                  action={
-                    <Button size="sm" variant="ghost" onClick={() => setView("diet")} type="button">
-                      Full plan
-                    </Button>
-                  }
-                />
-                {activeDiets.length === 0 ? (
-                  <EmptyState title="No active diet plan" icon={<Salad className="h-5 w-5" />} />
-                ) : todaysMeals.length === 0 ? (
-                  <EmptyState title="No meals added yet" hint="Your doctor hasn't uploaded the meals for this plan" />
-                ) : (
-                  <div className="divide-y divide-ink/6">
-                    {todaysMeals.map((meal) => (
-                      <div key={meal.id} className="px-5 py-3">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[13px] font-semibold text-ink">
-                            {TIME_LABELS[meal.timeOfDay] ?? meal.timeOfDay} · {meal.name}
-                          </p>
-                          {meal.calories ? <Badge tone="moss">{meal.calories} kcal</Badge> : null}
-                        </div>
-                        {meal.items ? <p className="mt-1 text-[11px] leading-5 text-ink/60">{meal.items}</p> : null}
-                      </div>
-                    ))}
-                  </div>
-                )}
+              <Card className="!rounded-[1.6rem] !border-[#e9e3ec] !shadow-sm">
+                <div className="flex items-start justify-between gap-3 px-5 pt-5"><div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#927fa0]">Your next step</p><h3 className="mt-1 font-display text-xl font-semibold text-ink">Next appointment</h3></div><CalendarDays className="h-5 w-5 text-[#806b91]" /></div>
+                {next ? <div className="px-5 pb-5 pt-4"><div className="rounded-2xl bg-[#f5f0f6] p-4"><p className="text-[10px] font-semibold uppercase tracking-wider text-[#806b91]">{next.kind}</p><p className="mt-2 font-display text-2xl font-semibold text-ink">{fmtDate(next.scheduledAt)}</p><p className="mt-1 text-sm text-ink/60">{fmtTime(next.scheduledAt)} · {next.durationMin} min</p><p className="mt-1 text-xs text-ink/45">{next.location ?? "EVIDA Clinic"}</p></div><div className="mt-4 flex flex-wrap gap-2"><Button size="sm" onClick={()=>setView("appointments")} type="button">Appointment details</Button><Button size="sm" variant="outline" onClick={()=>cancel(next)} type="button">Cancel</Button></div></div> : <div className="px-5 pb-5 pt-4"><div className="rounded-2xl border border-dashed border-[#ded4e3] bg-[#faf8fb] px-4 py-7 text-center"><CalendarPlus className="mx-auto h-6 w-6 text-[#9a88a5]" /><p className="mt-2 text-sm font-semibold text-ink/70">No visits booked</p><p className="mt-1 text-xs text-ink/45">Whenever you're ready, book your next visit.</p><Button size="sm" className="mt-4" onClick={()=>setApptModal({open:true})} type="button">Book a visit</Button></div></div>}
               </Card>
-            </div>
+            </section>
 
-            <Card>
-              <SectionHeader title="Treatment progress" subtitle="Completed sessions out of the total" icon={<ClipboardList className="h-4 w-4" />} />
-              {activePlans.length === 0 ? (
-                <EmptyState title="No active plan" icon={<ClipboardList className="h-5 w-5" />} />
-              ) : (
-                <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
-                  {activePlans.map((plan) => (
-                    <div key={plan.id} className="rounded-xl border border-ink/8 bg-white p-3.5">
-                      <p className="text-[13px] font-semibold text-ink">{plan.title}</p>
-                      <p className="mt-1 text-[11px] text-ink/55">
-                        {plan.startDate ? `${fmtDate(plan.startDate)} → ${plan.endDate ? fmtDate(plan.endDate) : "open ended"}` : ""}
-                      </p>
-                      <div className="mt-3">
-                        <Progress value={plan.sessionsDone} total={plan.sessionsTotal} />
-                        <p className="num mt-1.5 text-[11px] text-ink/55">
-                          {plan.sessionsDone} of {plan.sessionsTotal} sessions
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+            {me.targetWeightKg ? <section className="rounded-[1.6rem] border border-[#e9e3ec] bg-[#f5f0f6] p-5 sm:p-6"><div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#806b91]">Personal target</p><h3 className="mt-1 font-display text-xl font-semibold text-ink">Your goal, your pace.</h3></div><p className="num text-2xl font-semibold text-ink">{goalRemaining ?? "—"} <span className="text-xs font-medium text-ink/45">kg to go</span></p></div><div className="mt-4 h-2.5 overflow-hidden rounded-full bg-white"><div className="h-full rounded-full bg-[#806b91] transition-all" style={{width: String(goalProgress ?? 0)+"%"}} /></div><div className="mt-2 flex justify-between text-[10px] text-ink/45"><span>{startingWeight ?? "—"} kg starting</span><span>{me.targetWeightKg} kg target</span></div></section> : null}
+
+            <section className="grid gap-5 lg:grid-cols-2">
+              <Card className="!rounded-[1.6rem] !border-[#e9e3ec] !shadow-sm">
+                <div className="flex items-center justify-between gap-3 px-5 pt-5"><div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#927fa0]">Daily care</p><h3 className="mt-1 font-display text-lg font-semibold text-ink">Dose schedule</h3></div><button type="button" onClick={()=>setView("treatment")} className="text-[11px] font-semibold text-[#806b91]">View plan →</button></div>
+                {activeDoses.length ? <div className="divide-y divide-[#eee8f0] px-5 pb-2 pt-3">{activeDoses.slice(0,4).map(dose=>{const taken=data.doseLogs.some(l=>l.doseId===dose.id&&isSameDay(l.takenAt));return <div key={dose.id} className="flex items-center justify-between gap-3 py-3"><div className="min-w-0"><p className="text-sm font-semibold text-ink">{dose.dosage||"Dose"}</p><p className="mt-1 text-[11px] text-ink/45">{dose.frequency??"As prescribed"} · {dose.timeOfDay?TIME_LABELS[dose.timeOfDay]??dose.timeOfDay:"Scheduled"}</p></div><Button size="sm" variant={taken?"soft":"outline"} disabled={taken} onClick={()=>taken?undefined:logDose(dose.id)} type="button">{taken?"Taken":"Log dose"}</Button></div>})}</div> : <div className="px-5 pb-5 pt-4"><EmptyState title="No active doses" hint="Your doctor will add your schedule here." icon={<Pill className="h-5 w-5" />} /></div>}
+              </Card>
+              <Card className="!rounded-[1.6rem] !border-[#e9e3ec] !shadow-sm">
+                <div className="flex items-center justify-between gap-3 px-5 pt-5"><div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#927fa0]">Nutrition</p><h3 className="mt-1 font-display text-lg font-semibold text-ink">Today's meals</h3></div><button type="button" onClick={()=>setView("diet")} className="text-[11px] font-semibold text-[#806b91]">Full diet plan →</button></div>
+                {activeDiets.length===0 ? <div className="px-5 pb-5 pt-4"><EmptyState title="No active diet plan" hint="Your personalized plan will appear here." icon={<Salad className="h-5 w-5" />} /></div> : todaysMeals.length===0 ? <div className="px-5 pb-5 pt-4"><EmptyState title="No meals added yet" hint="Your doctor hasn't uploaded meals for this plan." icon={<UtensilsCrossed className="h-5 w-5" />} /></div> : <div className="divide-y divide-[#eee8f0] px-5 pb-2 pt-3">{todaysMeals.slice(0,4).map(meal=><div key={meal.id} className="py-3"><div className="flex items-center justify-between gap-2"><p className="text-sm font-semibold text-ink">{TIME_LABELS[meal.timeOfDay]??meal.timeOfDay} · {meal.name}</p>{meal.calories?<Badge tone="moss">{meal.calories} kcal</Badge>:null}</div>{meal.items?<p className="mt-1 text-xs leading-5 text-ink/55">{meal.items}</p>:null}</div>)}</div>}
+              </Card>
+            </section>
+
+            <Card className="!rounded-[1.6rem] !border-[#e9e3ec] !shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5"><div><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#927fa0]">Treatment overview</p><h3 className="mt-1 font-display text-lg font-semibold text-ink">Your active protocols</h3></div><button type="button" onClick={()=>setView("treatment")} className="text-[11px] font-semibold text-[#806b91]">See all →</button></div>
+              {activePlans.length===0 ? <div className="px-5 pb-5 pt-4"><EmptyState title="No active treatment protocol" hint="Your care team will add your plan here." icon={<ClipboardList className="h-5 w-5" />} /></div> : <div className="grid gap-3 px-5 pb-5 pt-4 sm:grid-cols-2">{activePlans.map(plan=><div key={plan.id} className="rounded-2xl bg-[#f8f5f9] p-4"><div className="flex items-start justify-between gap-3"><p className="text-sm font-semibold text-ink">{plan.title}</p><Badge tone="pine">Active</Badge></div><div className="mt-3"><Progress value={plan.sessionsDone} total={plan.sessionsTotal} /><p className="num mt-2 text-[10px] text-ink/45">{plan.sessionsDone} / {plan.sessionsTotal} sessions completed</p></div></div>)}</div>}
             </Card>
           </div>
         ) : null}
