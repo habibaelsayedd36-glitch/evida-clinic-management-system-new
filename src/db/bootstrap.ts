@@ -174,6 +174,17 @@ CREATE TABLE IF NOT EXISTS "invoices" ("id" uuid PRIMARY KEY DEFAULT gen_random_
 CREATE INDEX IF NOT EXISTS "invoices_client_idx" ON "invoices" ("client_id");
 CREATE TABLE IF NOT EXISTS "invoice_payments" ("id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL, "invoice_id" uuid NOT NULL REFERENCES "invoices"("id") ON DELETE CASCADE, "amount" integer NOT NULL, "method" text DEFAULT 'cash' NOT NULL, "reference" text, "note" text, "received_by" uuid REFERENCES "profiles"("id") ON DELETE SET NULL, "paid_at" timestamp with time zone DEFAULT now() NOT NULL);
 CREATE INDEX IF NOT EXISTS "invoice_payments_invoice_idx" ON "invoice_payments" ("invoice_id");
+CREATE TABLE IF NOT EXISTS "paymob_payment_attempts" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "invoice_id" uuid NOT NULL REFERENCES "invoices"("id") ON DELETE CASCADE,
+  "amount" integer NOT NULL,
+  "paymob_order_id" text UNIQUE,
+  "paymob_transaction_id" text UNIQUE,
+  "status" text DEFAULT 'pending' NOT NULL,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+  "paid_at" timestamp with time zone
+);
+CREATE INDEX IF NOT EXISTS "paymob_payment_attempts_invoice_idx" ON "paymob_payment_attempts" ("invoice_id");
 INSERT INTO "medical_records" ("client_id", "appointment_id", "doctor_id", "title", "visit_date", "notes")
 SELECT a."client_id", a."id", a."doctor_id", a."kind" || ' visit', (a."scheduled_at" AT TIME ZONE 'Africa/Cairo')::date, COALESCE(a."notes", 'Visit imported from a completed appointment.')
 FROM "appointments" a
