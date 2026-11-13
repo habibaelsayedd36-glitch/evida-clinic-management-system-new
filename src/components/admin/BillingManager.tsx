@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CheckCircle2, CreditCard, Wallet } from "lucide-react";
+import { CheckCircle2, CreditCard, Pencil, Wallet } from "lucide-react";
 import { api, currency, fmtDate, fmtDateTime } from "@/lib/client";
 import type { InvoiceDTO } from "@/lib/types";
 import { Badge, Button, Card, EmptyState, SectionHeader } from "@/components/ui";
@@ -30,6 +30,10 @@ export function BillingManager({ invoices, onDone }: Props) {
   const [message, setMessage] = useState("");
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
+  const [editInvoiceId, setEditInvoiceId] = useState<string | null>(null);
+  const [editTotal, setEditTotal] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editMessage, setEditMessage] = useState("");
 
   const filtered = useMemo(() => invoices.filter((invoice) => {
     const matchesStatus = filter === "all" || invoice.status === filter;
@@ -77,6 +81,38 @@ export function BillingManager({ invoices, onDone }: Props) {
       setMessage(error instanceof Error ? error.message : "Could not record payment. Please try again.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  function openEditInvoice(invoice: InvoiceDTO) {
+    setEditInvoiceId(invoice.id);
+    setEditTotal(String(invoice.totalAmount));
+    setEditMessage("");
+  }
+
+  async function saveInvoiceEdit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const invoice = invoices.find((item) => item.id === editInvoiceId);
+    if (!invoice) return;
+    const value = Number(editTotal);
+    if (!Number.isSafeInteger(value) || value <= 0) {
+      setEditMessage("Enter a valid invoice total in EGP.");
+      return;
+    }
+    if (value < invoice.paidAmount) {
+      setEditMessage("Invoice total cannot be lower than the amount already paid.");
+      return;
+    }
+    setEditSaving(true);
+    setEditMessage("");
+    try {
+      await api("PATCH", `/api/invoices/${invoice.id}`, { totalAmount: value });
+      setEditInvoiceId(null);
+      await onDone();
+    } catch (error) {
+      setEditMessage(error instanceof Error ? error.message : "Could not update invoice.");
+    } finally {
+      setEditSaving(false);
     }
   }
 
@@ -136,13 +172,30 @@ export function BillingManager({ invoices, onDone }: Props) {
                     </div>
                   </div>
                 ) : null}
-                <div className="mt-3 flex justify-end">
+                <div className="mt-3 flex flex-wrap items-center justify-end gap-2">
+                  <Button size="sm" variant="outline" onClick={() => openEditInvoice(invoice)} type="button" icon={<Pencil className="h-3.5 w-3.5" />}>Edit invoice</Button>
                   {invoice.remainingAmount > 0 ? (
                     <Button size="sm" onClick={() => openPayment(invoice)} type="button">Record payment</Button>
                   ) : (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-moss-700"><CheckCircle2 className="h-4 w-4" /> Fully paid</span>
                   )}
                 </div>
+                {editInvoiceId === invoice.id ? (
+                  <form onSubmit={saveInvoiceEdit} className="mt-4 space-y-3 rounded-xl border border-iris-200 bg-iris-50/50 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm font-bold text-ink">Edit invoice total</p>
+                      <button type="button" onClick={() => setEditInvoiceId(null)} className="text-xs text-ink/55 hover:text-ink">Cancel</button>
+                    </div>
+                    <p className="text-xs text-ink/60">Already paid: <strong className="num">{currency(invoice.paidAmount)}</strong>. The new total cannot be lower than this amount.</p>
+                    <label className="block text-xs font-medium text-ink/70">Invoice total (EGP)
+                      <input type="number" min={Math.max(1, invoice.paidAmount)} step="1" required value={editTotal} onChange={(event) => setEditTotal(event.target.value)} className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-iris-400" />
+                    </label>
+                    {editMessage ? <p role="alert" className="text-xs text-red-700">{editMessage}</p> : null}
+                    <div className="flex justify-end">
+                      <Button size="sm" type="submit" loading={editSaving} disabled={editSaving}>Save changes</Button>
+                    </div>
+                  </form>
+                ) : null}
                 {selectedId === invoice.id ? (
                   <form onSubmit={recordPayment} className="mt-4 space-y-3 rounded-xl border border-iris-200 bg-iris-50/50 p-4">
                     <div className="flex items-center justify-between gap-2">
