@@ -15,7 +15,10 @@ function buckets(email: string, ip: string | null): string[] {
   ];
 }
 
+let tableReady = false;
+
 async function ensureTable() {
+  if (tableReady) return;
   await pool.query(`
     CREATE TABLE IF NOT EXISTS auth_rate_limits (
       bucket text PRIMARY KEY,
@@ -24,6 +27,12 @@ async function ensureTable() {
       blocked_until timestamptz
     )
   `);
+  await pool.query(`
+    DELETE FROM auth_rate_limits
+    WHERE window_started_at < now() - interval '1 day'
+      AND (blocked_until IS NULL OR blocked_until < now())
+  `);
+  tableReady = true;
 }
 
 export async function isLoginRateLimited(email: string, ip: string | null): Promise<boolean> {
