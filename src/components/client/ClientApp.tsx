@@ -104,23 +104,79 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   const goalRemaining = me.weightKg && me.targetWeightKg ? Math.round(Math.abs(me.weightKg - me.targetWeightKg) * 10) / 10 : null;
 
   function printInvoice(invoice: InvoiceDTO) {
-    const popup = window.open("", "_blank", "width=900,height=700");
-    if (!popup) {
-      window.alert("Please allow pop-ups to print your invoice.");
-      return;
-    }
+    // Print in the current tab: mobile browsers and installed PWAs often block window.open().
+    document.getElementById("evida-print-root")?.remove();
+    document.getElementById("evida-print-style")?.remove();
+
     const escapeHtml = (value: string) => {
-      const entities: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "\'": "&#39;" };
-      return value.replace(/[&<>"\']/g, (char) => entities[char]);
+      const entities: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" };
+      return value.replace(/[&<>"']/g, (char) => entities[char]);
     };
-    const money = (amount: number) => `${amount.toLocaleString("en-US")} EGP`;
+    const money = (amount: number) => amount.toLocaleString("en-US") + " EGP";
     const payments = invoice.payments.length
-      ? invoice.payments.map((payment) => `<tr><td>${escapeHtml(fmtDateTime(payment.paidAt))}</td><td>${escapeHtml(payment.method.replace(/_/g, " "))}</td><td class="amount">${money(payment.amount)}</td></tr>`).join("")
-      : `<tr><td colspan="3" class="muted">No payments recorded</td></tr>`;
-    popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Invoice ${escapeHtml(invoice.invoiceNumber)}</title><style>
-      *{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#242238;margin:0;padding:40px;background:#fff}.sheet{max-width:760px;margin:auto}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #514477;padding-bottom:22px}.brand{font-size:27px;font-weight:800;letter-spacing:2px;color:#514477}.muted{color:#777;font-size:12px}.heading{font-size:25px;margin:28px 0 6px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.meta div,.totals div{background:#f7f5f1;padding:13px;border-radius:8px}.label{font-size:11px;color:#777;margin-bottom:5px}.value{font-size:14px;font-weight:700}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #e9e6e1;font-size:12px}th{background:#f7f5f1}.amount{text-align:right;font-weight:700}.totals{width:320px;margin:24px 0 0 auto;display:grid;gap:8px}.totals div{display:flex;justify-content:space-between;align-items:center}.balance{color:#514477;font-weight:800}.footer{margin-top:42px;padding-top:14px;border-top:1px solid #e9e6e1;text-align:center;color:#777;font-size:11px}@media print{body{padding:0}.sheet{max-width:none}.no-print{display:none}}
-      </style></head><body><main class="sheet"><header class="top"><div><div class="brand">EVIDA CLINIC</div><div class="muted">Nutrition & Dermatology</div></div><div style="text-align:right"><div class="muted">INVOICE</div><strong>${escapeHtml(invoice.invoiceNumber)}</strong></div></header><h1 class="heading">Invoice</h1><div class="muted">Issued ${escapeHtml(fmtDate(invoice.createdAt))}</div><section class="meta"><div><div class="label">CLIENT</div><div class="value">${escapeHtml(me.fullName)}</div><div class="muted">${escapeHtml(me.email ?? "")}</div><div class="muted">${escapeHtml(me.phone ?? "")}</div></div><div><div class="label">SERVICE</div><div class="value">${escapeHtml(invoice.appointmentKind ?? "Clinic visit")}</div><div class="muted">Invoice number: ${escapeHtml(invoice.invoiceNumber)}</div></div></section><h3>Payment history</h3><table><thead><tr><th>Date</th><th>Payment method</th><th class="amount">Amount</th></tr></thead><tbody>${payments}</tbody></table><section class="totals"><div><span>Total</span><strong>${money(invoice.totalAmount)}</strong></div><div><span>Paid</span><strong>${money(invoice.paidAmount)}</strong></div><div><span>Remaining</span><strong class="balance">${money(invoice.remainingAmount)}</strong></div></section><footer class="footer">Thank you for choosing EVIDA Clinic</footer></main><script>window.onload=()=>{window.focus();window.print();};</script></body></html>`);
-    popup.document.close();
+      ? invoice.payments.map((payment) => "<tr><td>" + escapeHtml(fmtDateTime(payment.paidAt)) + "</td><td>" + escapeHtml(payment.method.replace(/_/g, " ")) + '</td><td class="amount">' + money(payment.amount) + "</td></tr>").join("")
+      : '<tr><td colspan="3" class="muted">No payments recorded</td></tr>';
+
+    const style = document.createElement("style");
+    style.id = "evida-print-style";
+    style.textContent = [
+      "#evida-print-root{display:none}",
+      "@page{size:auto;margin:12mm}",
+      "@media print{",
+      "html,body{background:#fff!important;margin:0!important;padding:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}",
+      "body>*:not(#evida-print-root){display:none!important}",
+      "#evida-print-root{display:block!important;position:static!important;width:100%!important;color:#242238!important;font-family:Arial,sans-serif!important}",
+      "#evida-print-root *{box-sizing:border-box}",
+      "#evida-print-root .sheet{width:100%;max-width:760px;margin:0 auto}",
+      "#evida-print-root .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #514477;padding-bottom:18px}",
+      "#evida-print-root .brand{font-size:25px;font-weight:800;letter-spacing:2px;color:#514477}",
+      "#evida-print-root .muted{color:#777;font-size:11px}",
+      "#evida-print-root .heading{font-size:23px;margin:24px 0 6px}",
+      "#evida-print-root .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}",
+      "#evida-print-root .meta>div,#evida-print-root .totals>div{background:#f7f5f1;padding:11px;border-radius:7px;break-inside:avoid}",
+      "#evida-print-root .label{font-size:10px;color:#777;margin-bottom:5px}",
+      "#evida-print-root .value{font-size:13px;font-weight:700;overflow-wrap:anywhere}",
+      "#evida-print-root table{width:100%;border-collapse:collapse;margin-top:20px}",
+      "#evida-print-root th,#evida-print-root td{text-align:left;padding:10px 8px;border-bottom:1px solid #e9e6e1;font-size:11px}",
+      "#evida-print-root th{background:#f7f5f1}",
+      "#evida-print-root .amount{text-align:right;font-weight:700;white-space:nowrap}",
+      "#evida-print-root .totals{width:min(100%,320px);margin:20px 0 0 auto;display:grid;gap:7px}",
+      "#evida-print-root .totals>div{display:flex;justify-content:space-between;align-items:center}",
+      "#evida-print-root .balance{color:#514477;font-weight:800}",
+      "#evida-print-root .footer{margin-top:35px;padding-top:12px;border-top:1px solid #e9e6e1;text-align:center;color:#777;font-size:10px}",
+      "#evida-print-root tr{break-inside:avoid}",
+      "}"
+    ].join("");
+    document.head.appendChild(style);
+
+    const root = document.createElement("div");
+    root.id = "evida-print-root";
+    root.innerHTML =
+      '<main class="sheet">' +
+      '<header class="top"><div><div class="brand">EVIDA CLINIC</div><div class="muted">Nutrition & Dermatology</div></div><div style="text-align:right"><div class="muted">INVOICE</div><strong>' + escapeHtml(invoice.invoiceNumber) + '</strong></div></header>' +
+      '<h1 class="heading">Invoice</h1><div class="muted">Issued ' + escapeHtml(fmtDate(invoice.createdAt)) + '</div>' +
+      '<section class="meta"><div><div class="label">CLIENT</div><div class="value">' + escapeHtml(me.fullName) + '</div><div class="muted">' + escapeHtml(me.email ?? "") + '</div><div class="muted">' + escapeHtml(me.phone ?? "") + '</div></div>' +
+      '<div><div class="label">SERVICE</div><div class="value">' + escapeHtml(invoice.appointmentKind ?? "Clinic visit") + '</div><div class="muted">Invoice number: ' + escapeHtml(invoice.invoiceNumber) + '</div></div></section>' +
+      '<h3>Payment history</h3><table><thead><tr><th>Date</th><th>Payment method</th><th class="amount">Amount</th></tr></thead><tbody>' + payments + '</tbody></table>' +
+      '<section class="totals"><div><span>Total</span><strong>' + money(invoice.totalAmount) + '</strong></div><div><span>Paid</span><strong>' + money(invoice.paidAmount) + '</strong></div><div><span>Remaining</span><strong class="balance">' + money(invoice.remainingAmount) + '</strong></div></section>' +
+      '<footer class="footer">Thank you for choosing EVIDA CLINIC</footer></main>';
+    document.body.appendChild(root);
+
+    const cleanup = () => {
+      root.remove();
+      style.remove();
+      window.removeEventListener("afterprint", cleanup);
+    };
+    window.addEventListener("afterprint", cleanup, { once: true });
+    window.requestAnimationFrame(() => {
+      try {
+        window.print();
+      } catch (error) {
+        cleanup();
+        console.error("[invoice print]", error);
+        window.alert("Printing is not available in this browser. Try your browser's Share or Print option.");
+      }
+    });
   }
 
   async function payInvoice(invoice: InvoiceDTO) {
