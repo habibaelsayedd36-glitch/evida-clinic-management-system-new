@@ -46,7 +46,7 @@ export async function isLoginRateLimited(email: string, ip: string | null): Prom
      LIMIT 1`,
     [keys, WINDOW_MINUTES, MAX_ATTEMPTS],
   );
-  return result.rowCount > 0;
+  return (result.rowCount ?? 0) > 0;
 }
 
 export async function recordFailedLogin(email: string, ip: string | null): Promise<void> {
