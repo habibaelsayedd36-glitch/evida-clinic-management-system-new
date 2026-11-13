@@ -362,6 +362,12 @@ export async function bootstrapDatabase() {
   const existing = await db.select({ id: profiles.id }).from(profiles).limit(1);
   if (existing.length > 0) return { seeded: false };
 
+  // Demo accounts use public sample credentials and must never be seeded in production.
+  if (process.env.NODE_ENV === "production") {
+    console.warn("[evida] production database is empty; demo seeding is disabled. Provision the first administrator securely before opening the clinic.");
+    return { seeded: false };
+  }
+
   const ids: Record<string, string> = {};
   for (const seed of SEED_USERS) {
     const [row] = await db
