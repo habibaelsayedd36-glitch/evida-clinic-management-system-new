@@ -23,6 +23,7 @@ const METHODS = [
 export function BillingManager({ invoices, onDone }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
+  const [paymentType, setPaymentType] = useState<"full" | "partial">("full");
   const [method, setMethod] = useState("cash");
   const [reference, setReference] = useState("");
   const [note, setNote] = useState("");
@@ -46,6 +47,7 @@ export function BillingManager({ invoices, onDone }: Props) {
   function openPayment(invoice: InvoiceDTO) {
     setSelectedId(invoice.id);
     setAmount(String(invoice.remainingAmount));
+    setPaymentType("full");
     setMethod("cash");
     setReference("");
     setNote("");
@@ -62,6 +64,10 @@ export function BillingManager({ invoices, onDone }: Props) {
     }
     if (value > selected.remainingAmount) {
       setMessage("Payment cannot exceed the remaining balance.");
+      return;
+    }
+    if (paymentType === "partial" && value >= selected.remainingAmount) {
+      setMessage("For a partial payment, enter an amount lower than the remaining balance. Choose Full payment to settle it.");
       return;
     }
     setSaving(true);
@@ -203,9 +209,13 @@ export function BillingManager({ invoices, onDone }: Props) {
                       <button type="button" onClick={() => setSelectedId(null)} className="text-xs text-ink/55 hover:text-ink">Cancel</button>
                     </div>
                     <p className="text-xs text-ink/60">Remaining balance: <strong className="num">{currency(invoice.remainingAmount)}</strong></p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => { setPaymentType("full"); setAmount(String(invoice.remainingAmount)); setMessage(""); }} className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${paymentType === "full" ? "border-iris-500 bg-iris-100 text-iris-800" : "border-ink/12 bg-white text-ink/65"}`}>Full payment</button>
+                      <button type="button" onClick={() => { setPaymentType("partial"); setAmount(""); setMessage(""); }} className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${paymentType === "partial" ? "border-iris-500 bg-iris-100 text-iris-800" : "border-ink/12 bg-white text-ink/65"}`}>Partial payment</button>
+                    </div>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <label className="block text-xs font-medium text-ink/70">Amount (EGP)
-                        <input type="number" min="1" max={invoice.remainingAmount} step="1" required value={amount} onChange={(event) => setAmount(event.target.value)} className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-iris-400" />
+                        <input type="number" min="1" max={invoice.remainingAmount} step="1" required disabled={paymentType === "full"} value={amount} onChange={(event) => setAmount(event.target.value)} className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-iris-400 disabled:bg-sand-100 disabled:text-ink/55" />
                       </label>
                       <label className="block text-xs font-medium text-ink/70">Payment method
                         <select value={method} onChange={(event) => setMethod(event.target.value)} className="mt-1 w-full rounded-lg border border-ink/12 bg-white px-3 py-2.5 text-sm text-ink outline-none focus:border-iris-400">
