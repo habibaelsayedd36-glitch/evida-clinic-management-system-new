@@ -372,7 +372,7 @@ export async function bootstrapDatabase() {
       console.warn("[evida] empty production database; set BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD to create the first admin");
       return { seeded: false };
     }
-    if (password.length < 12 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (password.length < 12 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       throw new Error("Invalid initial administrator configuration");
     }
     await db.insert(profiles).values({
