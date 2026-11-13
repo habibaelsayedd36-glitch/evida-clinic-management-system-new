@@ -72,20 +72,21 @@ export function AuthForm({ mode, next }: { mode: "login" | "register"; next?: st
           </div>
 
           <div className="max-w-md">
-            <p className="text-[11px] tracking-[0.2em] text-iris-100/70">EVIDA CLINIC MANAGEMENT</p>
+            <p className="text-[11px] tracking-[0.2em] text-iris-100/70">WELCOME TO EVIDA CLINIC</p>
             <h2 className="mt-3 font-display text-3xl font-extrabold leading-snug">
-              Every client has a file, every doctor sees only their own clients, and the admin sees the full picture.
+              Feel confident in your health journey.
             </h2>
             <p className="mt-4 text-sm leading-7 text-iris-100/85">
-              One system for appointments, treatment plans, diet plans and medical records — with access control
-              applied per account, so nobody can reach data that isn&apos;t theirs.
+              At EVIDA Clinic, our medical team brings together nutrition and dermatology services with care plans
+              tailored to your needs — from your first consultation to every follow-up.
             </p>
 
             <ul className="mt-7 space-y-2.5 text-[13px] text-iris-100/90">
               {[
-                "Admin: manage clients, staff, assignments and reports",
-                "Doctor: only assigned clients — appointments, plans and records",
-                "Client: their own file only — appointments, diet, treatment and doses",
+                "Clinical nutrition and weight-management consultations",
+                "Personalized diet plans and progress follow-up",
+                "Dermatology and skin-care consultations",
+                "Individual treatment plans and ongoing care",
               ].map((line) => (
                 <li key={line} className="flex items-start gap-2.5">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-clay-300" />
