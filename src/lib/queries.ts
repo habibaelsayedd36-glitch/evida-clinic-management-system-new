@@ -218,6 +218,7 @@ export async function loadScopedData(user: ProfileDTO): Promise<Bootstrap> {
   const recordRows = await db
     .select({
       id: medicalRecords.id,
+      appointmentId: medicalRecords.appointmentId,
       clientId: medicalRecords.clientId,
       doctorId: medicalRecords.doctorId,
       title: medicalRecords.title,
