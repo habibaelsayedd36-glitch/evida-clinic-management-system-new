@@ -12,6 +12,7 @@ import {
   updateAppointment,
   updateAssignment,
   updateClinical,
+  updateInvoice,
   updateProfile,
 } from "@/lib/mutations";
 
@@ -32,6 +33,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
         return ok(await updateAssignment(user, id, body));
       case "appointments":
         return ok(await updateAppointment(user, id, body));
+      case "invoices":
+        return ok(await updateInvoice(user, id, body));
       case "notifications":
         return ok(await markNotification(user, id, body));
       default:
