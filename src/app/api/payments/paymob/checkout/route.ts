@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const attemptId = crypto.randomUUID();
     await db.insert(paymobPaymentAttempts).values({ id: attemptId, invoiceId, amount: remaining, status: "pending" });
 
-    const nameParts = (profile.fullName || "EVIDA Client").trim().split(/\\s+/);
+    const nameParts = (profile.fullName || "EVIDA Client").trim().split(/\s+/);
     const firstName = nameParts[0] || "Client";
     const lastName = nameParts.slice(1).join(" ") || "EVIDA";
     const phone = profile.phone.startsWith("+") ? profile.phone : profile.phone.startsWith("0") ? `+2${profile.phone}` : `+20${profile.phone}`;
