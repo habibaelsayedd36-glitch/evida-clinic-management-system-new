@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, lt } from "drizzle-orm";
 import { NextRequest } from "next/server";
 import { db } from "@/db";
 import { invoices, invoicePayments, paymobPaymentAttempts, profiles } from "@/db/schema";
@@ -28,6 +28,17 @@ export async function POST(request: NextRequest) {
     const remaining = invoice.totalAmount - paidAmount;
     if (remaining <= 0) return Response.json({ error: "This invoice is already paid." }, { status: 409 });
 
+    // Paymob intentions expire after 30 minutes. Keep a 15-minute grace period
+    // for delayed callbacks before allowing a replacement attempt.
+    const staleBefore = new Date(Date.now() - 45 * 60 * 1000);
+    await db.update(paymobPaymentAttempts)
+      .set({ status: "failed" })
+      .where(and(
+        eq(paymobPaymentAttempts.invoiceId, invoiceId),
+        eq(paymobPaymentAttempts.status, "pending"),
+        lt(paymobPaymentAttempts.createdAt, staleBefore),
+      ));
+
     const pending = await db.select({ id: paymobPaymentAttempts.id })
       .from(paymobPaymentAttempts)
       .where(and(eq(paymobPaymentAttempts.invoiceId, invoiceId), eq(paymobPaymentAttempts.status, "pending")))
@@ -44,7 +55,7 @@ export async function POST(request: NextRequest) {
     const attemptId = crypto.randomUUID();
     await db.insert(paymobPaymentAttempts).values({ id: attemptId, invoiceId, amount: remaining, status: "pending" });
 
-    const nameParts = (profile.fullName || "EVIDA Client").trim().split(/\s+/);
+    const nameParts = (profile.fullName || "EVIDA Client").trim().split(/\\s+/);
     const firstName = nameParts[0] || "Client";
     const lastName = nameParts.slice(1).join(" ") || "EVIDA";
     const phone = profile.phone.startsWith("+") ? profile.phone : profile.phone.startsWith("0") ? `+2${profile.phone}` : `+20${profile.phone}`;
