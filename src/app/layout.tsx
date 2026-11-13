@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "EVIDA clinic management system: admin, doctor and client accounts with appointments, treatment plans, diet plans, medical records, dose tracking and notifications — with strict per-role access control.",
   applicationName: "Evida Clinic",
   appleWebApp: { capable: true, statusBarStyle: "default", title: "Evida Clinic" },
-  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }], apple: [{ url: "/icon.svg", type: "image/svg+xml" }] },
+  icons: { icon: [{ url: "/icon-192.svg", type: "image/svg+xml", sizes: "192x192" }, { url: "/icon-512.svg", type: "image/svg+xml", sizes: "512x512" }], apple: [{ url: "/icon-192.svg", type: "image/svg+xml" }] },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
