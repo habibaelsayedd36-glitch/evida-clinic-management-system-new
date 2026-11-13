@@ -14,16 +14,16 @@ export async function POST(req: NextRequest) {
     const email = String(body.email ?? "").trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Enter a valid email address.", 400);
 
-    const [profile] = await db.select({ id: profiles.id, email: profiles.email, fullName: profiles.fullName })
-      .from(profiles).where(eq(profiles.email, email)).limit(1);
-    if (!profile) return ok({ message: genericMessage });
-
     const apiKey = process.env.RESEND_API_KEY;
     const from = process.env.RESEND_FROM_EMAIL;
     if (!apiKey || !from) {
       console.error("[password reset] Email provider is not configured.");
       return fail("Password reset email is not configured yet. Please contact the clinic.", 503);
     }
+
+    const [profile] = await db.select({ id: profiles.id, email: profiles.email, fullName: profiles.fullName })
+      .from(profiles).where(eq(profiles.email, email)).limit(1);
+    if (!profile) return ok({ message: genericMessage });
 
     const since = new Date(Date.now() - 15 * 60 * 1000);
     const recent = await db.select({ id: passwordResetTokens.id }).from(passwordResetTokens)
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       await db.delete(passwordResetTokens).where(eq(passwordResetTokens.tokenHash, tokenHash));
       const detail = await emailResponse.text();
       console.error("[password reset] Resend error:", emailResponse.status, detail.slice(0, 500));
-      return fail("We could not send the reset email right now. Please try again later.", 502);
+      return ok({ message: genericMessage });
     }
 
     return ok({ message: genericMessage });
