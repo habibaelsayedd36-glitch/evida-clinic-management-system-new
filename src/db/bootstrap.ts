@@ -185,6 +185,15 @@ CREATE TABLE IF NOT EXISTS "paymob_payment_attempts" (
   "paid_at" timestamp with time zone
 );
 CREATE INDEX IF NOT EXISTS "paymob_payment_attempts_invoice_idx" ON "paymob_payment_attempts" ("invoice_id");
+CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "profile_id" uuid NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
+  "token_hash" text NOT NULL UNIQUE,
+  "expires_at" timestamp with time zone NOT NULL,
+  "used_at" timestamp with time zone,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "password_reset_tokens_profile_idx" ON "password_reset_tokens" ("profile_id");
 INSERT INTO "medical_records" ("client_id", "appointment_id", "doctor_id", "title", "visit_date", "notes")
 SELECT a."client_id", a."id", a."doctor_id", a."kind" || ' visit', (a."scheduled_at" AT TIME ZONE 'Africa/Cairo')::date, COALESCE(a."notes", 'Visit imported from a completed appointment.')
 FROM "appointments" a
