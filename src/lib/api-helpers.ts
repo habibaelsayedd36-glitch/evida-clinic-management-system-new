@@ -33,9 +33,9 @@ export async function withGuards(
     if (error instanceof AccessError || error instanceof AuthError) {
       return fail(error.message, error.status);
     }
-    const message = error instanceof Error ? error.message : "Unexpected error";
-    console.error("[api]", message);
-    return fail(message, 500);
+    // Keep database, schema, and infrastructure details in server logs only.
+    console.error("[api] Unhandled route error:", error);
+    return fail("Internal server error", 500);
   }
 }
 

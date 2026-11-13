@@ -82,7 +82,7 @@ export async function createProfile(user: ProfileDTO, body: Body) {
 
   const email = str(body.email, { required: true, label: "Email", max: 160 })!.toLowerCase();
   const fullName = str(body.fullName, { required: true, label: "Full name", max: 120 })!;
-  const password = String(body.password ?? "Evida@123");
+  const password = String(body.password ?? "");
   assert(password.length >= 8, "Password must be at least 8 characters");
 
   const duplicate = await db.select({ id: profiles.id }).from(profiles).where(eq(profiles.email, email)).limit(1);
@@ -759,7 +759,17 @@ export async function sendNotification(user: ProfileDTO, body: Body) {
   const userId = isUuid(body.userId) ? body.userId : null;
 
   let recipients: string[] = [];
-  if (userId) recipients = [userId];
+  if (userId) {
+    const recipient = await profileById(userId);
+    assert(recipient, "Notification recipient not found", 404);
+    if (!isAdmin(user)) {
+      assert(
+        user.role === "doctor" && recipient.role === "client" && (await canAccessClient(user, userId)),
+        "You can only notify clients assigned to you",
+      );
+    }
+    recipients = [userId];
+  }
   else if (clientId) {
     await assertClientAccess(user, clientId);
     recipients = [clientId];

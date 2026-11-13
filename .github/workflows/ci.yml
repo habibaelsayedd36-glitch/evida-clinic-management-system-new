@@ -36,4 +36,5 @@ jobs:
       - name: Production build
         env:
           DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/evida_ci
+          AUTH_SECRET: ci-only-auth-secret-not-for-production-32chars
         run: npm run build

@@ -362,6 +362,30 @@ export async function bootstrapDatabase() {
   const existing = await db.select({ id: profiles.id }).from(profiles).limit(1);
   if (existing.length > 0) return { seeded: false };
 
+  // Never seed predictable demo credentials in production. An initial admin
+  // can be provisioned once using private deployment environment variables.
+  if (process.env.NODE_ENV === "production") {
+    const email = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase();
+    const password = process.env.BOOTSTRAP_ADMIN_PASSWORD;
+    const fullName = process.env.BOOTSTRAP_ADMIN_NAME?.trim() || "EVIDA Administrator";
+    if (!email || !password) {
+      console.warn("[evida] empty production database; set BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD to create the first admin");
+      return { seeded: false };
+    }
+    if (password.length < 12 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      throw new Error("Invalid initial administrator configuration");
+    }
+    await db.insert(profiles).values({
+      email,
+      passwordHash: hashPassword(password),
+      fullName,
+      role: "admin",
+      isActive: true,
+    });
+    console.log("[evida] initial production administrator created");
+    return { seeded: true };
+  }
+
   const ids: Record<string, string> = {};
   for (const seed of SEED_USERS) {
     const [row] = await db
