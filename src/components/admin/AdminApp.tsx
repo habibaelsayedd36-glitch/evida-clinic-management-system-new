@@ -38,6 +38,7 @@ import { AppointmentForm, AssignmentForm, ClientForm, NotificationForm, StaffFor
 import { AppointmentRow, ClientFile } from "@/components/clinical";
 import { useBootstrap } from "@/lib/client";
 import { OffersManager } from "@/components/admin/OffersManager";
+import { BillingManager } from "@/components/admin/BillingManager";
 
 const NAV: NavItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -45,6 +46,7 @@ const NAV: NavItem[] = [
   { id: "doctors", label: "Doctors", icon: Stethoscope },
   { id: "assignments", label: "Assignments", icon: Link2 },
   { id: "appointments", label: "Appointments", icon: CalendarDays },
+  { id: "invoices", label: "Invoices & payments", icon: Wallet },
   { id: "plans", label: "Plans", icon: ClipboardList },
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "notifications", label: "Notifications", icon: Bell },
@@ -57,6 +59,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   doctors: { title: "Medical team", subtitle: "Doctor accounts, workload and collected revenue" },
   assignments: { title: "Client → doctor assignments", subtitle: "The link decides who can see whose data — admin only" },
   appointments: { title: "Appointments", subtitle: "Book, edit, change status and delete appointments across the clinic" },
+  invoices: { title: "Invoices & payments", subtitle: "Record payments, review payment history and track outstanding balances" },
   plans: { title: "Treatment & diet plans", subtitle: "Follow every client's plans and session completion" },
   reports: { title: "Reports", subtitle: "Clinic performance in numbers — appointments, revenue and client adherence" },
   notifications: { title: "Notifications", subtitle: "Send alerts to one client, all clients or all doctors" },
@@ -678,6 +681,8 @@ export function AdminApp({ initial }: { initial: Bootstrap }) {
             </Card>
           </div>
         ) : null}
+
+        {view === "invoices" ? <BillingManager invoices={data.invoices} onDone={refresh} /> : null}
 
         {view === "appointments" ? (
           <Card>
