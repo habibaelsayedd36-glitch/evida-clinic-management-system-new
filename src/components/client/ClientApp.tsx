@@ -56,6 +56,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   const [view, setView] = useState("home");
   const [apptModal, setApptModal] = useState<{ open: boolean; appt?: AppointmentDTO | null }>({ open: false });
   const [profileModal, setProfileModal] = useState(false);
+  const [payingInvoiceId, setPayingInvoiceId] = useState<string | null>(null);
 
   const me = data.me;
   const myDoctor = data.doctors[0] ?? null;
@@ -120,6 +121,17 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
       *{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#242238;margin:0;padding:40px;background:#fff}.sheet{max-width:760px;margin:auto}.top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #514477;padding-bottom:22px}.brand{font-size:27px;font-weight:800;letter-spacing:2px;color:#514477}.muted{color:#777;font-size:12px}.heading{font-size:25px;margin:28px 0 6px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}.meta div,.totals div{background:#f7f5f1;padding:13px;border-radius:8px}.label{font-size:11px;color:#777;margin-bottom:5px}.value{font-size:14px;font-weight:700}table{width:100%;border-collapse:collapse;margin-top:24px}th,td{text-align:left;padding:12px 10px;border-bottom:1px solid #e9e6e1;font-size:12px}th{background:#f7f5f1}.amount{text-align:right;font-weight:700}.totals{width:320px;margin:24px 0 0 auto;display:grid;gap:8px}.totals div{display:flex;justify-content:space-between;align-items:center}.balance{color:#514477;font-weight:800}.footer{margin-top:42px;padding-top:14px;border-top:1px solid #e9e6e1;text-align:center;color:#777;font-size:11px}@media print{body{padding:0}.sheet{max-width:none}.no-print{display:none}}
       </style></head><body><main class="sheet"><header class="top"><div><div class="brand">EVIDA CLINIC</div><div class="muted">Nutrition & Dermatology</div></div><div style="text-align:right"><div class="muted">INVOICE</div><strong>${escapeHtml(invoice.invoiceNumber)}</strong></div></header><h1 class="heading">Invoice</h1><div class="muted">Issued ${escapeHtml(fmtDate(invoice.createdAt))}</div><section class="meta"><div><div class="label">CLIENT</div><div class="value">${escapeHtml(me.fullName)}</div><div class="muted">${escapeHtml(me.email ?? "")}</div><div class="muted">${escapeHtml(me.phone ?? "")}</div></div><div><div class="label">SERVICE</div><div class="value">${escapeHtml(invoice.appointmentKind ?? "Clinic visit")}</div><div class="muted">Invoice number: ${escapeHtml(invoice.invoiceNumber)}</div></div></section><h3>Payment history</h3><table><thead><tr><th>Date</th><th>Payment method</th><th class="amount">Amount</th></tr></thead><tbody>${payments}</tbody></table><section class="totals"><div><span>Total</span><strong>${money(invoice.totalAmount)}</strong></div><div><span>Paid</span><strong>${money(invoice.paidAmount)}</strong></div><div><span>Remaining</span><strong class="balance">${money(invoice.remainingAmount)}</strong></div></section><footer class="footer">Thank you for choosing EVIDA Clinic</footer></main><script>window.onload=()=>{window.focus();window.print();};</script></body></html>`);
     popup.document.close();
+  }
+
+  async function payInvoice(invoice: InvoiceDTO) {
+    setPayingInvoiceId(invoice.id);
+    try {
+      const result = await api<{ checkoutUrl: string }>("POST", "/api/payments/paymob/checkout", { invoiceId: invoice.id });
+      window.location.assign(result.checkoutUrl);
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Could not start the payment. Please try again.");
+      setPayingInvoiceId(null);
+    }
   }
 
   async function cancel(appt: AppointmentDTO) {
@@ -370,7 +382,14 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
                   <div className="rounded-xl bg-clay-100/60 p-2"><p className="text-[10px] text-ink/50">Remaining</p><p className="num text-sm font-bold">{invoice.remainingAmount.toLocaleString("en-US")} EGP</p></div>
                 </div>
                 {invoice.payments.length > 0 ? <div className="mt-4 border-t border-ink/8 pt-3"><p className="mb-2 text-xs font-semibold text-ink">Payment history</p><div className="space-y-2">{invoice.payments.map((payment) => <div key={payment.id} className="flex justify-between gap-2 text-xs text-ink/65"><span>{payment.method.replace(/_/g, " ")} · {fmtDateTime(payment.paidAt)}</span><strong className="num">{payment.amount.toLocaleString("en-US")} EGP</strong></div>)}</div></div> : null}
-                <div className="mt-4 flex justify-end"><Button size="sm" variant="outline" icon={<Printer className="h-4 w-4" />} onClick={() => printInvoice(invoice)} type="button">Print invoice</Button></div>
+                <div className="mt-4 flex flex-wrap justify-end gap-2">
+                  {invoice.remainingAmount > 0 ? (
+                    <Button size="sm" onClick={() => void payInvoice(invoice)} disabled={payingInvoiceId === invoice.id} type="button">
+                      {payingInvoiceId === invoice.id ? "Opening secure checkout…" : `Pay now · ${invoice.remainingAmount.toLocaleString("en-US")} EGP`}
+                    </Button>
+                  ) : null}
+                  <Button size="sm" variant="outline" icon={<Printer className="h-4 w-4" />} onClick={() => printInvoice(invoice)} type="button">Print invoice</Button>
+                </div>
               </Card>
             ))}
           </div>
