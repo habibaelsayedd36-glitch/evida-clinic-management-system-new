@@ -940,6 +940,27 @@ export async function deleteNotification(user: ProfileDTO, id: string) {
 }
 
 
+export async function updateInvoice(user: ProfileDTO, id: string, body: Body) {
+  assert(isAdmin(user), "Only the admin can edit invoices");
+  const invoiceId = requireUuid(id, "Invoice");
+  const rows = await db.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
+  const invoice = rows[0];
+  assert(invoice, "Invoice not found", 404);
+
+  const totalAmount = int(body.totalAmount);
+  assert(totalAmount !== null && totalAmount > 0, "Invoice total must be greater than zero");
+
+  const paymentRows = await db
+    .select({ amount: invoicePayments.amount })
+    .from(invoicePayments)
+    .where(eq(invoicePayments.invoiceId, invoiceId));
+  const paidAmount = paymentRows.reduce((sum, payment) => sum + payment.amount, 0);
+  assert(totalAmount >= paidAmount, "Invoice total cannot be lower than the amount already paid");
+
+  await db.update(invoices).set({ totalAmount }).where(eq(invoices.id, invoiceId));
+  return { id: invoiceId, totalAmount, paidAmount, remainingAmount: totalAmount - paidAmount };
+}
+
 export async function createInvoicePayment(user: ProfileDTO, body: Body) {
   assert(user.role !== "client", "Only clinic staff can record payments");
   const invoiceId = requireUuid(body.invoiceId, "Invoice");
