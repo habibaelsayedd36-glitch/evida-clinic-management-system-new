@@ -84,6 +84,21 @@ export async function POST(req: NextRequest) {
       "INSERT INTO clinic_patient_events (client_id,created_by,kind,payload) VALUES ($1,$2,$3,$4::jsonb) RETURNING id, client_id AS \\"clientId\\", kind, payload, created_at AS \\"createdAt\\"",
       [clientId, user.id, kind, serialized]
     );
+
+    if (kind === "aftercare" && Number(payload.symptomScore) >= 7) {
+      const assigned = await pool.query("SELECT doctor_id FROM client_doctors WHERE client_id = $1", [clientId]);
+      const admins = await pool.query("SELECT id FROM profiles WHERE role = 'admin' AND is_active = true");
+      const recipients = Array.from(new Set([
+        ...assigned.rows.map((row: { doctor_id: string }) => row.doctor_id),
+        ...admins.rows.map((row: { id: string }) => row.id),
+      ]));
+      for (const recipient of recipients) {
+        await pool.query(
+          "INSERT INTO notifications (user_id,actor_id,client_id,title,body,kind,link) VALUES ($1,$2,$3,$4,$5,$6,$7)",
+          [recipient, user.id, clientId, "Aftercare check-in needs review", "A patient reported a symptom score of " + payload.symptomScore + "/10 after " + String(payload.service || "a treatment") + ". Please review the patient report.", "aftercare", "/admin/journey"]
+        );
+      }
+    }
     return ok({ event: result.rows[0] }, 201);
   }, req, {});
 }
