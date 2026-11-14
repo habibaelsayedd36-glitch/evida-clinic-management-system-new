@@ -35,6 +35,8 @@ export function BillingManager({ invoices, onDone }: Props) {
   const [editTotal, setEditTotal] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const [editMessage, setEditMessage] = useState("");
+  const [awardingId, setAwardingId] = useState<string | null>(null);
+  const [rewardMessage, setRewardMessage] = useState("");
 
   const filtered = useMemo(() => invoices.filter((invoice) => {
     const matchesStatus = filter === "all" || invoice.status === filter;
@@ -87,6 +89,20 @@ export function BillingManager({ invoices, onDone }: Props) {
       setMessage(error instanceof Error ? error.message : "Could not record payment. Please try again.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function awardPoints(invoice: InvoiceDTO) {
+    setAwardingId(invoice.id);
+    setRewardMessage("");
+    try {
+      const result = await api<{ alreadyAwarded: boolean; points: number }>("POST", "/api/rewards", { invoiceId: invoice.id });
+      setRewardMessage(result.alreadyAwarded ? `Points were already issued for this invoice (${result.points}).` : `${result.points} loyalty points issued successfully.`);
+      await onDone();
+    } catch (error) {
+      setRewardMessage(error instanceof Error ? error.message : "Could not issue loyalty points.");
+    } finally {
+      setAwardingId(null);
     }
   }
 
@@ -185,7 +201,11 @@ export function BillingManager({ invoices, onDone }: Props) {
                   ) : (
                     <span className="inline-flex items-center gap-1 text-xs font-semibold text-moss-700"><CheckCircle2 className="h-4 w-4" /> Fully paid</span>
                   )}
+                  {invoice.status === "paid" && invoice.appointmentStatus === "completed" ? (
+                    <Button size="sm" variant="soft" loading={awardingId === invoice.id} disabled={awardingId !== null} onClick={() => awardPoints(invoice)} type="button">Issue loyalty points</Button>
+                  ) : null}
                 </div>
+                {rewardMessage && awardingId === null ? <p role="status" className="mt-2 text-xs text-ink/65">{rewardMessage}</p> : null}
                 {editInvoiceId === invoice.id ? (
                   <form onSubmit={saveInvoiceEdit} className="mt-4 space-y-3 rounded-xl border border-iris-200 bg-iris-50/50 p-4">
                     <div className="flex items-center justify-between gap-2">
