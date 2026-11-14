@@ -28,9 +28,9 @@ export async function POST(request: NextRequest) {
     const remaining = invoice.totalAmount - paidAmount;
     if (remaining <= 0) return Response.json({ error: "This invoice is already paid." }, { status: 409 });
 
-    // Paymob intentions expire after 30 minutes. Keep a 15-minute grace period
-    // for delayed callbacks before allowing a replacement attempt.
-    const staleBefore = new Date(Date.now() - 45 * 60 * 1000);
+    // Paymob checkout intentions expire after 30 minutes. Release abandoned attempts
+    // after the provider's actual expiration so clients are not locked out indefinitely.
+    const staleBefore = new Date(Date.now() - 30 * 60 * 1000);
     await db.update(paymobPaymentAttempts)
       .set({ status: "failed" })
       .where(and(
