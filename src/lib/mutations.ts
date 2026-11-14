@@ -13,6 +13,7 @@ import {
   medicationDoses,
   notifications,
   profiles,
+  rewardLedger,
   treatmentPlans,
 } from "@/db/schema";
 import { hashPassword } from "./crypto";
@@ -991,4 +992,69 @@ export async function createInvoicePayment(user: ProfileDTO, body: Body) {
     clientId: invoice.clientId,
   });
   return { id: payment.id, invoiceId, paidTotal: alreadyPaid + amount, remaining: invoice.totalAmount - alreadyPaid - amount };
+}
+
+ 
+export async function awardInvoiceRewards(user: ProfileDTO, body: Body) {
+  assert(isAdmin(user), "Only the admin can issue loyalty points");
+  const invoiceId = requireUuid(body.invoiceId, "Invoice");
+
+  const result = await db.transaction(async (tx) => {
+    const [invoice] = await tx.select().from(invoices).where(eq(invoices.id, invoiceId)).limit(1);
+    assert(invoice, "Invoice not found", 404);
+
+    const [appointment] = await tx
+      .select({ status: appointments.status })
+      .from(appointments)
+      .where(eq(appointments.id, invoice.appointmentId))
+      .limit(1);
+    assert(appointment?.status === "completed", "Points are available only after the visit is completed");
+
+    const payments = await tx
+      .select({ amount: invoicePayments.amount })
+      .from(invoicePayments)
+      .where(eq(invoicePayments.invoiceId, invoiceId));
+    const paidAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
+    assert(invoice.totalAmount > 0 && paidAmount >= invoice.totalAmount, "The invoice must be fully paid before points are issued");
+
+    const points = Math.floor(paidAmount / 100);
+    assert(points > 0, "This payment does not qualify for loyalty points");
+
+    const expiresAt = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    const [created] = await tx
+      .insert(rewardLedger)
+      .values({
+        clientId: invoice.clientId,
+        invoiceId,
+        points,
+        eligibleAmount: paidAmount,
+        expiresAt,
+        issuedBy: user.id,
+      })
+      .onConflictDoNothing({ target: rewardLedger.invoiceId })
+      .returning({ id: rewardLedger.id, points: rewardLedger.points, expiresAt: rewardLedger.expiresAt });
+
+    if (!created) {
+      const [existing] = await tx
+        .select({ points: rewardLedger.points, expiresAt: rewardLedger.expiresAt })
+        .from(rewardLedger)
+        .where(eq(rewardLedger.invoiceId, invoiceId))
+        .limit(1);
+      return { alreadyAwarded: true, points: existing?.points ?? 0, expiresAt: existing?.expiresAt ?? null, clientId: invoice.clientId };
+    }
+
+    return { alreadyAwarded: false, points: created.points, expiresAt: created.expiresAt, clientId: invoice.clientId };
+  });
+
+  if (!result.alreadyAwarded) {
+    await notify([result.clientId], {
+      title: "EVIDA loyalty points added",
+      body: `You earned ${result.points} points from your completed and fully paid visit. They are valid for one year.`,
+      kind: "rewards",
+      actorId: user.id,
+      clientId: result.clientId,
+    });
+  }
+
+  return { alreadyAwarded: result.alreadyAwarded, points: result.points, expiresAt: result.expiresAt };
 }
