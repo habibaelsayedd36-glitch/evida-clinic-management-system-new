@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { Activity, Camera, ClipboardHeart, Flame, HeartPulse, MessageSquareText, Scale, Sparkles, TrendingUp, Utensils } from "lucide-react";
+import { Activity, Camera, ClipboardCheck, Flame, HeartPulse, MessageSquareText, Scale, Sparkles, TrendingUp, Utensils } from "lucide-react";
 import type { Bootstrap } from "@/lib/types";
 import { api } from "@/lib/client";
 import { Badge, Button, Card, EmptyState, SectionHeader, StatTile } from "@/components/ui";
@@ -151,7 +151,7 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
           <label className={labelClass}>Body fat (%)<input type="number" min="1" max="75" step="0.1" value={bodyFat} onChange={(e)=>setBodyFat(e.target.value)} className={fieldClass}/></label>
           <div className="sm:col-span-2 flex items-center justify-between gap-3"><p className="text-[10px] text-ink/45">{bodyEntries.length ? "Last entry: "+new Date(bodyEntries[0].createdAt).toLocaleDateString() : "No measurements recorded yet."}</p><Button type="submit" loading={saving} disabled={saving}>Save measurement</Button></div>
         </form>
-        {bodyEntries.length>0?<div className="border-t border-ink/6 px-5 py-3">{bodyEntries.slice(0,5).map((e)=><div key={e.id} className="flex justify-between gap-3 py-1.5 text-xs"><span className="text-ink/55">{new Date(e.createdAt).toLocaleDateString()}</span><strong>{n(e.payload.weightKg)} kg · waist {e.payload.waistCm??"—"} cm · hips {e.payload.hipsCm??"—"} cm</strong></div>)}</div>:null}
+        {bodyEntries.length>0?<div className="border-t border-ink/6 px-5 py-3">{bodyEntries.slice(0,5).map((e)=><div key={e.id} className="flex justify-between gap-3 py-1.5 text-xs"><span className="text-ink/55">{new Date(e.createdAt).toLocaleDateString()}</span><strong>{n(e.payload.weightKg)} kg · waist {String(e.payload.waistCm??"—")} cm · hips {String(e.payload.hipsCm??"—")} cm</strong></div>)}</div>:null}
       </Card>
       <Card><SectionHeader title="Meal photo diary & calorie tracker" subtitle="Log your food and attach a photo for nutritionist review." icon={<Utensils className="h-4 w-4" />} />
         <form className="grid gap-3 px-5 pb-5 sm:grid-cols-2" onSubmit={async(e)=>{e.preventDefault();const ok=await saveEvent("meal",{name:mealName,mealType,calories:Number(calories),protein:Number(protein||0),carbs:Number(carbs||0),fat:Number(fat||0),photoDataUrl:photo||null});if(ok){setMealName("");setCalories("");setProtein("");setCarbs("");setFat("");setPhoto("");}}}>
