@@ -28,9 +28,10 @@ export async function POST(request: NextRequest) {
     const remaining = invoice.totalAmount - paidAmount;
     if (remaining <= 0) return Response.json({ error: "This invoice is already paid." }, { status: 409 });
 
-    // Paymob checkout intentions expire after 30 minutes. Release abandoned attempts
-    // after the provider's actual expiration so clients are not locked out indefinitely.
-    const staleBefore = new Date(Date.now() - 30 * 60 * 1000);
+    // Give a checkout a short window to complete, then release abandoned pending attempts.
+    // Late successful callbacks are still reconciled by the webhook; if another attempt
+    // has already paid the invoice, the older success is sent to manual review.
+    const staleBefore = new Date(Date.now() - 5 * 60 * 1000);
     await db.update(paymobPaymentAttempts)
       .set({ status: "failed" })
       .where(and(
