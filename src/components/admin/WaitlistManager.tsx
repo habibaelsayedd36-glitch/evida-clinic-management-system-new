@@ -6,7 +6,7 @@ import { Badge, Button, Card, EmptyState, SectionHeader } from "@/components/ui"
 import { Clock3, ListChecks, MessageCircle, Users } from "lucide-react";
 
 type Entry = { id: number; fullName: string; phone: string | null; service: string | null; notes: string | null; status: string; createdAt: string };
-type ReleasedSlot = { id: string; scheduledAt: string; kind: string; doctorName: string; location: string | null };
+type ReleasedSlot = { id: string; scheduledAt: string; kind: string; status: string; doctorName: string; location: string | null };
 
 const statusLabel: Record<string, string> = { waiting: "Waiting", contacted: "Contacted", booked: "Booked", closed: "Closed" };
 
