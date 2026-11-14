@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
   const { id } = await context.params;
   return withGuards(async (user, body) => {
     if (user.role !== "admin") return fail("Admin access required", 403);
-    if (!/^\\d+$/.test(id)) return fail("Invalid waitlist entry", 400);
+    if (!/^\d+$/.test(id)) return fail("Invalid waitlist entry", 400);
     const status = str(body.status, { required: true, label: "Status", max: 20 });
     if (!["waiting", "contacted", "booked", "closed"].includes(status ?? "")) return fail("Invalid status", 400);
     await ensureTable();
@@ -41,7 +41,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
   const { id } = await context.params;
   return withGuards(async (user) => {
     if (user.role !== "admin") return fail("Admin access required", 403);
-    if (!/^\\d+$/.test(id)) return fail("Invalid waitlist entry", 400);
+    if (!/^\d+$/.test(id)) return fail("Invalid waitlist entry", 400);
     await ensureTable();
     await pool.query("DELETE FROM clinic_waitlist WHERE id = $1", [Number(id)]);
     return ok({ deleted: true });
