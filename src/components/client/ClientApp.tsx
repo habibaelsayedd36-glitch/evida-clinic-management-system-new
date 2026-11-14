@@ -27,12 +27,14 @@ import { Shell, type NavItem } from "@/components/Shell";
 import { AppointmentForm, ProfileForm, useSubmit } from "@/components/forms";
 import { AppointmentRow, DietCard, PlanCard, RecordCard } from "@/components/clinical";
 import { EvidaAssistant } from "@/components/client/EvidaAssistant";
+import { PatientExperienceHub } from "@/components/PatientExperienceHub";
 
 const NAV: NavItem[] = [
   { id: "home", label: "Home", icon: LayoutDashboard },
   { id: "appointments", label: "My appointments", icon: CalendarDays },
   { id: "services", label: "Services", icon: Salad },
   { id: "diet", label: "Diet plan", icon: Salad },
+  { id: "journey", label: "My progress & food diary", icon: Activity },
   { id: "treatment", label: "Treatment", icon: ClipboardList },
   { id: "records", label: "Medical records", icon: Stethoscope },
   { id: "invoices", label: "My invoices", icon: ClipboardList },
@@ -45,6 +47,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   appointments: { title: "My appointments", subtitle: "Book, confirm or request a different appointment time" },
   services: { title: "EVIDA Services", subtitle: "Nutrition and weight-management services with clinic pricing" },
   diet: { title: "Diet plan", subtitle: "The daily meals your doctor wrote for you" },
+  journey: { title: "My progress & food diary", subtitle: "Track measurements, meals, calories, aftercare and healthy challenges" },
   treatment: { title: "Treatment protocol", subtitle: "Your assigned protocol, sessions and dose schedule" },
   records: { title: "Medical records", subtitle: "Diagnosis and measurements from your visits" },
   invoices: { title: "My invoices", subtitle: "View your invoices, payment history and remaining balance" },
@@ -615,6 +618,8 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
             </div>
           </div>
         ) : null}
+
+        {view === "journey" ? <PatientExperienceHub data={data} mode="client" /> : null}
 
         {view === "notifications" ? (
           <Card>
