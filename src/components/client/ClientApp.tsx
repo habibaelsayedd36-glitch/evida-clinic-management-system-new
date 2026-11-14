@@ -194,7 +194,9 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
       line(82);
       draw("Thank you for choosing EVIDA CLINIC", left, 62, 9, regular, muted);
       const bytes = await pdf.save();
-      const blob = new Blob([bytes], { type: "application/pdf" });
+      const pdfBuffer = new ArrayBuffer(bytes.byteLength);
+      new Uint8Array(pdfBuffer).set(bytes);
+      const blob = new Blob([pdfBuffer], { type: "application/pdf" });
       const file = new File([blob], invoice.invoiceNumber + ".pdf", { type: "application/pdf" });
 
       if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
