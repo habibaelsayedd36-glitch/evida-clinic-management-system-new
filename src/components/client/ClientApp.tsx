@@ -71,8 +71,6 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   );
   const next = upcoming[0] ?? null;
   const pastAppointments = data.appointments.filter((a) => a.status === "completed" || new Date(a.scheduledAt).getTime() <= Date.now());
-  const today = new Date();
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   const pastRecords = data.records;
   const linkedAppointmentIds = new Set(
     pastRecords.map((record) => record.appointmentId).filter((id): id is string => Boolean(id)),
