@@ -20,7 +20,7 @@ export type NavItem = { id: string; label: string; icon: LucideIcon; count?: num
 
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
-    <div className="flex min-w-0 items-center gap-2.5">
+    <div className="flex w-full min-w-0 items-center justify-center">
       <span className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden bg-white sm:h-32 sm:w-32">
         <img src="/evida-logo.svg" alt="EVIDA Aesthetics and Nutrition Clinics" className="h-full w-full object-contain" />
       </span>
