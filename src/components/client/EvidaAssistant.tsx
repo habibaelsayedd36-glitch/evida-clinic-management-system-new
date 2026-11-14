@@ -12,10 +12,10 @@ const topics = [
   { q: "How do I contact the clinic?", a: "You can contact the EVIDA team through the WhatsApp link in the Services section of your account." },
 ];
 
-export function EvidaAssistant() {
+export function EvidaAssistant({ context }: { context?: { calorieTarget?: number | null; currentWeight?: number | null; nextAppointment?: string | null; activePlans?: number } }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<{ from: "user" | "assistant"; text: string }[]>([
-    { from: "assistant", text: "Hello! I'm the EVIDA Help Assistant. I can help with appointments, services and using your account." },
+    { from: "assistant", text: "Hello! I am the EVIDA Smart Assistant. I can help you find information from your saved clinic plan and explain how to use your account. Medical decisions stay with your care team." },
   ]);
   const [question, setQuestion] = useState("");
 
@@ -26,7 +26,11 @@ export function EvidaAssistant() {
     const match = topics.find((topic) =>
       topic.q.toLowerCase().split(" ").some((word) => word.length > 4 && normalized.includes(word))
     );
-    const answer = match?.a ?? "I don't have a verified answer for that yet. Please contact the EVIDA team through WhatsApp or ask your doctor. I can't provide medical diagnosis or treatment advice.";
+    let answer = match?.a ?? "I don't have a verified answer for that yet. Please contact the EVIDA team through WhatsApp or ask your doctor. I can't provide medical diagnosis or treatment advice.";
+    if (/calorie|calories|سعر|السعرات/i.test(normalized)) answer = context?.calorieTarget ? "Your current daily calorie target is " + context.calorieTarget + " kcal, as set in your active diet plan. Your nutritionist should review any changes." : "There is no daily calorie target in your active plan yet. Ask your nutritionist to set one before using a calorie target.";
+    else if (/weight|وزن|الوزن/i.test(normalized)) answer = context?.currentWeight ? "Your latest profile weight is " + context.currentWeight + " kg. Open My progress & food diary to record additional measurements." : "There is no current weight saved in your profile yet. You can record it from My progress & food diary.";
+    else if (/appointment|موعد|الحجز/i.test(normalized)) answer = context?.nextAppointment ? "Your next appointment is " + context.nextAppointment + ". Open My appointments for details or to request a change." : "You do not have an upcoming appointment in your account. Use Book appointment to request one.";
+    else if (/plan|خطة|جلسات/i.test(normalized)) answer = "You currently have " + (context?.activePlans ?? 0) + " active treatment plan(s). Open Treatment to review your protocol and sessions.";
     setMessages((current) => [...current, { from: "user", text: clean }, { from: "assistant", text: answer }]);
     setQuestion("");
   }
@@ -36,7 +40,7 @@ export function EvidaAssistant() {
       {open ? (
         <section className="mb-3 flex w-[min(90vw,360px)] flex-col overflow-hidden rounded-2xl border border-[#e9e3ec] bg-white shadow-[0_20px_60px_-20px_rgba(33,27,53,.35)]">
           <header className="flex items-center justify-between bg-[#302542] px-4 py-3 text-white">
-            <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15"><Sparkles className="h-4 w-4" /></span><div><p className="text-sm font-semibold">EVIDA Help</p><p className="text-[10px] text-white/60">Appointments & account support</p></div></div>
+            <div className="flex items-center gap-2"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15"><Sparkles className="h-4 w-4" /></span><div><p className="text-sm font-semibold">EVIDA Smart Assistant</p><p className="text-[10px] text-white/60">Guided account & care-plan support</p></div></div>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant" className="rounded-lg p-1.5 hover:bg-white/10"><X className="h-4 w-4" /></button>
           </header>
           <div className="max-h-72 space-y-2 overflow-y-auto bg-[#faf8fb] p-3">
