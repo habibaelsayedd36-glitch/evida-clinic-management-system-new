@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import {
   Bell,
+  Activity,
   CalendarDays,
   CalendarPlus,
   ClipboardList,
