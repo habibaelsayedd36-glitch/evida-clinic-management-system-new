@@ -668,7 +668,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
         ) : null}
       </Shell>
 
-      <EvidaAssistant />
+      <EvidaAssistant context={{ calorieTarget: activeDiets[0]?.dailyCalories ?? null, currentWeight: me.weightKg, nextAppointment: next ? fmtDate(next.scheduledAt) + " at " + fmtTime(next.scheduledAt) : null, activePlans: activePlans.length }} />
 
       {apptModal.open ? (
         <AppointmentForm
