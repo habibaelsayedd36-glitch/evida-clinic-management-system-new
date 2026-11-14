@@ -70,15 +70,10 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
     [data.appointments],
   );
   const next = upcoming[0] ?? null;
-  const pastAppointments = data.appointments.filter((a) => new Date(a.scheduledAt).getTime() <= Date.now());
+  const pastAppointments = data.appointments.filter((a) => a.status === "completed" || new Date(a.scheduledAt).getTime() <= Date.now());
   const today = new Date();
   const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  const pastRecords = data.records.filter((record) => {
-    // PostgreSQL date values may arrive as YYYY-MM-DD or as an ISO timestamp.
-    // Compare the calendar date, not midnight timestamps, to avoid timezone shifts.
-    const visitDate = String(record.visitDate ?? "").slice(0, 10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(visitDate) && visitDate <= todayKey;
-  });
+  const pastRecords = data.records;
   const linkedAppointmentIds = new Set(
     pastRecords.map((record) => record.appointmentId).filter((id): id is string => Boolean(id)),
   );
@@ -145,7 +140,11 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
     const style = document.createElement("style");
     style.id = "evida-print-style";
     style.textContent = [
-      "#evida-print-root{display:none}",
+      "#evida-print-root{display:block;position:fixed;inset:0;z-index:99999;overflow:auto;background:#fff;padding:16px;color:#242238;font-family:Arial,sans-serif}",
+      "#evida-print-root .print-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:760px;margin:0 auto 16px;padding:10px;background:#f7f5f1;border-radius:10px;font-size:12px}",
+      "#evida-print-root .print-toolbar button{border:0;border-radius:8px;padding:10px 14px;background:#514477;color:#fff;font-weight:700}",
+      "#evida-print-root .print-toolbar .close{background:#e9e6e1;color:#242238}",
+      "#evida-print-root .sheet{max-width:760px;margin:0 auto}",
       "@page{size:auto;margin:12mm}",
       "@media print{",
       "html,body{background:#fff!important;margin:0!important;padding:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}",
@@ -170,6 +169,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
       "#evida-print-root .balance{color:#514477;font-weight:800}",
       "#evida-print-root .footer{margin-top:35px;padding-top:12px;border-top:1px solid #e9e6e1;text-align:center;color:#777;font-size:10px}",
       "#evida-print-root tr{break-inside:avoid}",
+      "#evida-print-root .print-toolbar{display:none!important}",
       "}"
     ].join("");
     document.head.appendChild(style);
@@ -177,6 +177,7 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
     const root = document.createElement("div");
     root.id = "evida-print-root";
     root.innerHTML =
+      '<div class="print-toolbar"><button id="evida-print-action" type="button">Print / Save PDF</button><button id="evida-print-close" class="close" type="button">Close</button><span>On iPhone, if printing does not open, use Share → Print from the browser.</span></div>' +
       '<main class="sheet">' +
       '<header class="top"><div><div class="brand">EVIDA CLINIC</div><div class="muted">Nutrition & Dermatology</div></div><div style="text-align:right"><div class="muted">INVOICE</div><strong>' + escapeHtml(invoice.invoiceNumber) + '</strong></div></header>' +
       '<h1 class="heading">Invoice</h1><div class="muted">Issued ' + escapeHtml(fmtDate(invoice.createdAt)) + '</div>' +
@@ -192,6 +193,8 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
       style.remove();
       window.removeEventListener("afterprint", cleanup);
     };
+    root.querySelector("#evida-print-action")?.addEventListener("click", () => window.print());
+    root.querySelector("#evida-print-close")?.addEventListener("click", cleanup);
     window.addEventListener("afterprint", cleanup, { once: true });
     // Call print synchronously from the button click. Some mobile browsers
     // drop the user-activation permission when print() is deferred to rAF.
