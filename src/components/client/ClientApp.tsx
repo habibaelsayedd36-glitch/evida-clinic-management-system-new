@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import {
   Bell,
   CalendarDays,
@@ -121,105 +122,99 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
   })();
   const goalRemaining = me.weightKg && me.targetWeightKg ? Math.round(Math.abs(me.weightKg - me.targetWeightKg) * 10) / 10 : null;
 
-  function printInvoice(invoice: InvoiceDTO) {
-    // Print in the current tab: mobile browsers and installed PWAs often block window.open().
-    document.getElementById("evida-print-root")?.remove();
-    document.getElementById("evida-print-style")?.remove();
-
-    const escapeHtml = (value: string) => {
-      const entities: Record<string, string> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" };
-      return value.replace(/[&<>"']/g, (char) => entities[char]);
-    };
-    const money = (amount: number) => amount.toLocaleString("en-US") + " EGP";
-    const payments = invoice.payments.length
-      ? invoice.payments.map((payment) => "<tr><td>" + escapeHtml(fmtDateTime(payment.paidAt)) + "</td><td>" + escapeHtml(payment.method.replace(/_/g, " ")) + '</td><td class="amount">' + money(payment.amount) + "</td></tr>").join("")
-      : '<tr><td colspan="3" class="muted">No payments recorded</td></tr>';
-
-    const style = document.createElement("style");
-    style.id = "evida-print-style";
-    style.textContent = [
-      "#evida-print-root{display:block;position:fixed;inset:0;z-index:99999;overflow:auto;background:#fff;padding:16px;color:#242238;font-family:Arial,sans-serif}",
-      "#evida-print-root .print-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:760px;margin:0 auto 16px;padding:10px;background:#f7f5f1;border-radius:10px;font-size:12px}",
-      "#evida-print-root .print-toolbar button{border:0;border-radius:8px;padding:10px 14px;background:#514477;color:#fff;font-weight:700}",
-      "#evida-print-root .print-toolbar .close{background:#e9e6e1;color:#242238}",
-      "#evida-print-root *{box-sizing:border-box}",
-      "#evida-print-root .sheet{max-width:760px;width:100%;margin:0 auto;background:#fff;padding:clamp(16px,4vw,32px);border:1px solid #eee;border-radius:14px;box-shadow:0 8px 28px rgba(30,20,50,.08)}",
-      "#evida-print-root .top{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #514477;padding-bottom:16px}",
-      "#evida-print-root .brand{font-size:clamp(20px,5vw,26px);font-weight:800;letter-spacing:1.5px;color:#514477}",
-      "#evida-print-root .muted{color:#777;font-size:12px;overflow-wrap:anywhere}",
-      "#evida-print-root .heading{font-size:24px;margin:22px 0 5px;color:#242238}",
-      "#evida-print-root .meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}",
-      "#evida-print-root .meta>div,#evida-print-root .totals>div{background:#f7f5f1;padding:12px;border-radius:9px;min-width:0}",
-      "#evida-print-root .label{font-size:10px;color:#777;margin-bottom:5px}",
-      "#evida-print-root .value{font-size:14px;font-weight:700;overflow-wrap:anywhere}",
-      "#evida-print-root table{width:100%;border-collapse:collapse;margin-top:12px}",
-      "#evida-print-root th,#evida-print-root td{text-align:left;padding:10px 8px;border-bottom:1px solid #e9e6e1;font-size:12px;overflow-wrap:anywhere}",
-      "#evida-print-root th{background:#f7f5f1}",
-      "#evida-print-root .amount{text-align:right;font-weight:700;white-space:nowrap}",
-      "#evida-print-root .totals{width:min(100%,340px);margin:18px 0 0 auto;display:grid;gap:8px}",
-      "#evida-print-root .totals>div{display:flex;justify-content:space-between;align-items:center;gap:12px}",
-      "#evida-print-root .balance{color:#514477;font-weight:800}",
-      "#evida-print-root .footer{margin-top:28px;padding-top:12px;border-top:1px solid #e9e6e1;text-align:center;color:#777;font-size:11px}",
-      "@media screen and (max-width:520px){#evida-print-root{padding:10px}#evida-print-root .sheet{padding:16px 12px;border-radius:10px}#evida-print-root .top{gap:8px}#evida-print-root .brand{font-size:19px;letter-spacing:1px}#evida-print-root .meta{grid-template-columns:1fr;gap:8px}#evida-print-root th,#evida-print-root td{font-size:10px;padding:8px 5px}#evida-print-root .totals{width:100%}#evida-print-root .print-toolbar{position:sticky;top:0;z-index:2}}",
-      "@page{size:auto;margin:12mm}",
-      "@media print{",
-      "html,body{background:#fff!important;margin:0!important;padding:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}",
-      "body>*:not(#evida-print-root){display:none!important}",
-      "#evida-print-root{display:block!important;position:static!important;width:100%!important;color:#242238!important;font-family:Arial,sans-serif!important}",
-      "#evida-print-root *{box-sizing:border-box}",
-      "#evida-print-root .sheet{width:100%;max-width:760px;margin:0 auto}",
-      "#evida-print-root .top{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #514477;padding-bottom:18px}",
-      "#evida-print-root .brand{font-size:25px;font-weight:800;letter-spacing:2px;color:#514477}",
-      "#evida-print-root .muted{color:#777;font-size:11px}",
-      "#evida-print-root .heading{font-size:23px;margin:24px 0 6px}",
-      "#evida-print-root .meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}",
-      "#evida-print-root .meta>div,#evida-print-root .totals>div{background:#f7f5f1;padding:11px;border-radius:7px;break-inside:avoid}",
-      "#evida-print-root .label{font-size:10px;color:#777;margin-bottom:5px}",
-      "#evida-print-root .value{font-size:13px;font-weight:700;overflow-wrap:anywhere}",
-      "#evida-print-root table{width:100%;border-collapse:collapse;margin-top:20px}",
-      "#evida-print-root th,#evida-print-root td{text-align:left;padding:10px 8px;border-bottom:1px solid #e9e6e1;font-size:11px}",
-      "#evida-print-root th{background:#f7f5f1}",
-      "#evida-print-root .amount{text-align:right;font-weight:700;white-space:nowrap}",
-      "#evida-print-root .totals{width:min(100%,320px);margin:20px 0 0 auto;display:grid;gap:7px}",
-      "#evida-print-root .totals>div{display:flex;justify-content:space-between;align-items:center}",
-      "#evida-print-root .balance{color:#514477;font-weight:800}",
-      "#evida-print-root .footer{margin-top:35px;padding-top:12px;border-top:1px solid #e9e6e1;text-align:center;color:#777;font-size:10px}",
-      "#evida-print-root tr{break-inside:avoid}",
-      "#evida-print-root .print-toolbar{display:none!important}",
-      "}"
-    ].join("");
-    document.head.appendChild(style);
-
-    const root = document.createElement("div");
-    root.id = "evida-print-root";
-    root.innerHTML =
-      '<div class="print-toolbar"><button id="evida-print-action" type="button">Print / Save PDF</button><button id="evida-print-close" class="close" type="button">Close</button><span>On iPhone, if printing does not open, use Share → Print from the browser.</span></div>' +
-      '<main class="sheet">' +
-      '<header class="top"><div><div class="brand">EVIDA CLINIC</div><div class="muted">Nutrition & Dermatology</div></div><div style="text-align:right"><div class="muted">INVOICE</div><strong>' + escapeHtml(invoice.invoiceNumber) + '</strong></div></header>' +
-      '<h1 class="heading">Invoice</h1><div class="muted">Issued ' + escapeHtml(fmtDate(invoice.createdAt)) + '</div>' +
-      '<section class="meta"><div><div class="label">CLIENT</div><div class="value">' + escapeHtml(me.fullName) + '</div><div class="muted">' + escapeHtml(me.email ?? "") + '</div><div class="muted">' + escapeHtml(me.phone ?? "") + '</div></div>' +
-      '<div><div class="label">SERVICE</div><div class="value">' + escapeHtml(invoice.appointmentKind ?? "Clinic visit") + '</div><div class="muted">Invoice number: ' + escapeHtml(invoice.invoiceNumber) + '</div></div></section>' +
-      '<h3>Payment history</h3><table><thead><tr><th>Date</th><th>Payment method</th><th class="amount">Amount</th></tr></thead><tbody>' + payments + '</tbody></table>' +
-      '<section class="totals"><div><span>Total</span><strong>' + money(invoice.totalAmount) + '</strong></div><div><span>Paid</span><strong>' + money(invoice.paidAmount) + '</strong></div><div><span>Remaining</span><strong class="balance">' + money(invoice.remainingAmount) + '</strong></div></section>' +
-      '<footer class="footer">Thank you for choosing EVIDA CLINIC</footer></main>';
-    document.body.appendChild(root);
-
-    const cleanup = () => {
-      root.remove();
-      style.remove();
-      window.removeEventListener("afterprint", cleanup);
-    };
-    root.querySelector("#evida-print-action")?.addEventListener("click", () => window.print());
-    root.querySelector("#evida-print-close")?.addEventListener("click", cleanup);
-    window.addEventListener("afterprint", cleanup, { once: true });
-    // Call print synchronously from the button click. Some mobile browsers
-    // drop the user-activation permission when print() is deferred to rAF.
+  async function printInvoice(invoice: InvoiceDTO) {
     try {
-      window.print();
+      const pdf = await PDFDocument.create();
+      const page = pdf.addPage([595.28, 841.89]);
+      const regular = await pdf.embedFont(StandardFonts.Helvetica);
+      const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+      const purple = rgb(0.318, 0.267, 0.467);
+      const ink = rgb(0.14, 0.13, 0.22);
+      const muted = rgb(0.45, 0.45, 0.48);
+      const pale = rgb(0.965, 0.957, 0.94);
+      const left = 48;
+      const right = 547;
+      let y = 790;
+      const draw = (value: string, x: number, top: number, size = 10, font = regular, color = ink) => {
+        page.drawText(value, { x, y: top, size, font, color, maxWidth: right - x });
+      };
+      const line = (top: number, color = rgb(0.89, 0.88, 0.86)) => {
+        page.drawLine({ start: { x: left, y: top }, end: { x: right, y: top }, thickness: 0.8, color });
+      };
+      const money = (amount: number) => amount.toLocaleString("en-US") + " EGP";
+      draw("EVIDA CLINIC", left, y, 22, bold, purple);
+      draw("INVOICE", 450, y + 2, 10, bold, muted);
+      draw("Nutrition & Dermatology", left, y - 18, 10, regular, muted);
+      draw(invoice.invoiceNumber, 350, y - 18, 9, bold, ink);
+      line(y - 34, purple);
+      y -= 76;
+      draw("INVOICE DETAILS", left, y, 9, bold, purple);
+      draw("Issued " + fmtDate(invoice.createdAt), left, y - 18, 10, regular, muted);
+      y -= 52;
+      page.drawRectangle({ x: left, y: y - 76, width: right - left, height: 88, color: pale });
+      draw("CLIENT", left + 14, y - 8, 8, bold, muted);
+      draw(me.fullName, left + 14, y - 27, 12, bold);
+      draw(me.email ?? "", left + 14, y - 44, 9, regular, muted);
+      draw(me.phone ?? "", left + 14, y - 59, 9, regular, muted);
+      draw("SERVICE", 330, y - 8, 8, bold, muted);
+      draw(invoice.appointmentKind ?? "Clinic visit", 330, y - 27, 11, bold);
+      draw("Invoice: " + invoice.invoiceNumber, 330, y - 44, 8, regular, muted);
+      y -= 112;
+      draw("PAYMENT HISTORY", left, y, 10, bold, purple);
+      y -= 22;
+      page.drawRectangle({ x: left, y: y - 20, width: right - left, height: 24, color: pale });
+      draw("DATE", left + 8, y - 12, 8, bold, muted);
+      draw("PAYMENT METHOD", 260, y - 12, 8, bold, muted);
+      draw("AMOUNT", 465, y - 12, 8, bold, muted);
+      y -= 40;
+      if (invoice.payments.length === 0) {
+        draw("No payments recorded", left + 8, y, 9, regular, muted);
+        y -= 22;
+      } else {
+        for (const payment of invoice.payments) {
+          draw(fmtDateTime(payment.paidAt), left + 8, y, 8, regular);
+          draw(payment.method.replace(/_/g, " "), 260, y, 8, regular);
+          draw(money(payment.amount), 455, y, 8, bold);
+          y -= 22;
+        }
+      }
+      line(y);
+      y -= 28;
+      const totalRows = [
+        ["Total", money(invoice.totalAmount), false],
+        ["Paid", money(invoice.paidAmount), false],
+        ["Remaining", money(invoice.remainingAmount), true],
+      ] as const;
+      for (const [label, value, emphasized] of totalRows) {
+        page.drawRectangle({ x: 330, y: y - 10, width: 217, height: 28, color: pale });
+        draw(label, 342, y, 9, emphasized ? bold : regular, emphasized ? purple : ink);
+        draw(value, 445, y, 9, bold, emphasized ? purple : ink);
+        y -= 36;
+      }
+      line(82);
+      draw("Thank you for choosing EVIDA CLINIC", left, 62, 9, regular, muted);
+      const bytes = await pdf.save();
+      const blob = new Blob([bytes], { type: "application/pdf" });
+      const file = new File([blob], invoice.invoiceNumber + ".pdf", { type: "application/pdf" });
+
+      if (typeof navigator.share === "function" && typeof navigator.canShare === "function" && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: "EVIDA Clinic Invoice" });
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = invoice.invoiceNumber + ".pdf";
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
-      cleanup();
-      console.error("[invoice print]", error);
-      window.alert("Printing is not available in this browser. Try your browser's Share or Print option.");
+      if (error instanceof Error && error.name === "AbortError") return;
+      console.error("[invoice PDF]", error);
+      window.alert("Could not create the invoice PDF. Please try again.");
     }
   }
 
