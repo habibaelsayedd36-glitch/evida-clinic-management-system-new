@@ -6,11 +6,13 @@ import { Badge, Button, Card, EmptyState, SectionHeader } from "@/components/ui"
 import { Clock3, ListChecks, MessageCircle, Users } from "lucide-react";
 
 type Entry = { id: number; fullName: string; phone: string | null; service: string | null; notes: string | null; status: string; createdAt: string };
+type ReleasedSlot = { id: string; scheduledAt: string; kind: string; doctorName: string; location: string | null };
 
 const statusLabel: Record<string, string> = { waiting: "Waiting", contacted: "Contacted", booked: "Booked", closed: "Closed" };
 
 export function WaitlistManager() {
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [releasedSlots, setReleasedSlots] = useState<ReleasedSlot[]>([]);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [service, setService] = useState("");
@@ -21,7 +23,15 @@ export function WaitlistManager() {
 
   async function load() {
     setLoading(true);
-    try { const result = await api<{ entries: Entry[] }>("GET", "/api/waitlist"); setEntries(result.entries ?? []); setError(""); }
+    try {
+      const result = await api<{ entries: Entry[] }>("GET", "/api/waitlist");
+      setEntries(result.entries ?? []);
+      try {
+        const bootstrap = await api<{ appointments: ReleasedSlot[] }>("GET", "/api/bootstrap");
+        setReleasedSlots((bootstrap.appointments ?? []).filter((a) => a.status === "cancelled" && new Date(a.scheduledAt).getTime() > Date.now()).sort((a,b) => +new Date(a.scheduledAt)-+new Date(b.scheduledAt)));
+      } catch { setReleasedSlots([]); }
+      setError("");
+    }
     catch { setError("Could not load the waiting list."); }
     finally { setLoading(false); }
   }
@@ -70,6 +80,22 @@ export function WaitlistManager() {
         <div className="sm:col-span-2 flex items-center justify-between gap-3"><p className="text-[11px] text-ink/45">Only clinic administrators can view this list.</p><Button type="submit" loading={saving} disabled={saving || !fullName.trim()}>Add to list</Button></div>
       </form>
       {error ? <p className="px-5 pb-4 text-xs text-berry-600">{error}</p> : null}
+    </Card>
+    <Card>
+      <SectionHeader title="Smart slot matching" subtitle="Future appointments cancelled by patients, matched against people waiting for the same service." />
+      {releasedSlots.length === 0 ? <EmptyState title="No released future slots" hint="When a future appointment is cancelled, a potential match will appear here." /> : <div className="divide-y divide-ink/6">
+        {releasedSlots.slice(0,8).map((slot) => {
+          const candidates = entries.filter((entry) => entry.status === "waiting" && (!entry.service || entry.service.toLowerCase().includes(slot.kind.toLowerCase()) || slot.kind.toLowerCase().includes(entry.service.toLowerCase())));
+          return <div key={slot.id} className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center">
+            <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-ink">{slot.kind} · {new Date(slot.scheduledAt).toLocaleString()}</p><p className="text-xs text-ink/50">{slot.doctorName || "Clinic team"} · {slot.location || "EVIDA Clinic"}</p></div>
+            {candidates.length ? <div className="flex flex-wrap gap-2">{candidates.slice(0,3).map((entry) => {
+              const message = encodeURIComponent("Hello " + entry.fullName + ", an earlier EVIDA Clinic appointment for " + slot.kind + " may be available on " + new Date(slot.scheduledAt).toLocaleString() + ". Would you like us to arrange it?");
+              const wa = entry.phone ? "https://wa.me/" + phoneDigits(entry.phone) + "?text=" + message : null;
+              return wa ? <a key={entry.id} href={wa} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#25D366] px-3 text-xs font-semibold text-white"><MessageCircle className="h-4 w-4" /> {entry.fullName}</a> : <span key={entry.id} className="rounded-lg bg-sand-100 px-2 py-2 text-xs">{entry.fullName} · no phone</span>;
+            })}</div> : <Badge tone="neutral">No matching service request</Badge>}
+          </div>;
+        })}
+      </div>}
     </Card>
     <Card>
       <SectionHeader title="Waiting list" subtitle="Update each entry as the clinic team contacts the client" />
