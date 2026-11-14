@@ -3,6 +3,7 @@ import { fail, ok, withGuards } from "@/lib/api-helpers";
 import {
   createAppointment,
   createInvoicePayment,
+  awardInvoiceRewards,
   createDietPlan,
   createDose,
   createDoseLog,
@@ -34,6 +35,8 @@ export async function POST(req: NextRequest, ctx: Ctx) {
         return ok(await createAppointment(user, body), 201);
       case "invoice-payments":
         return ok(await createInvoicePayment(user, body), 201);
+      case "rewards":
+        return ok(await awardInvoiceRewards(user, body), 201);
       case "medical-records":
         return ok(await createRecord(user, body), 201);
       case "treatment-plans":
