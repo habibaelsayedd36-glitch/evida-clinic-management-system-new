@@ -25,10 +25,10 @@ export async function GET(req: NextRequest) {
     if (allowed && allowed.length === 0) return ok({ events: [] });
     const result = allowed === null
       ? await pool.query(
-          "SELECT e.id, e.client_id AS \\"clientId\\", p.full_name AS \\"clientName\\", e.kind, e.payload, e.created_at AS \\"createdAt\\" FROM clinic_patient_events e JOIN profiles p ON p.id=e.client_id ORDER BY e.created_at DESC LIMIT 500"
+          'SELECT e.id, e.client_id AS "clientId", p.full_name AS "clientName", e.kind, e.payload, e.created_at AS "createdAt" FROM clinic_patient_events e JOIN profiles p ON p.id=e.client_id ORDER BY e.created_at DESC LIMIT 500'
         )
       : await pool.query(
-          "SELECT e.id, e.client_id AS \\"clientId\\", p.full_name AS \\"clientName\\", e.kind, e.payload, e.created_at AS \\"createdAt\\" FROM clinic_patient_events e JOIN profiles p ON p.id=e.client_id WHERE e.client_id = ANY($1::uuid[]) ORDER BY e.created_at DESC LIMIT 500",
+          'SELECT e.id, e.client_id AS "clientId", p.full_name AS "clientName", e.kind, e.payload, e.created_at AS "createdAt" FROM clinic_patient_events e JOIN profiles p ON p.id=e.client_id WHERE e.client_id = ANY($1::uuid[]) ORDER BY e.created_at DESC LIMIT 500',
           [allowed]
         );
     return ok({ events: result.rows });
@@ -42,14 +42,16 @@ export async function POST(req: NextRequest) {
     const clientId = user.role === "client" ? user.id : str(body.clientId, { required: true, label: "Client", max: 64 });
     if (!clientId) return fail("Client is required", 400);
     await assertClientAccess(user, clientId);
-    const payload = body.payload && typeof body.payload === "object" && !Array.isArray(body.payload) ? body.payload as Record<string, unknown> : {};
+    const payload = body.payload && typeof body.payload === "object" && !Array.isArray(body.payload)
+      ? body.payload as Record<string, unknown>
+      : {};
     const serialized = JSON.stringify(payload);
     if (serialized.length > 1400000) return fail("The attached content is too large. Please use a smaller image.", 413);
 
     if (kind === "body_measurement") {
       const weight = Number(payload.weightKg);
       if (!Number.isFinite(weight) || weight < 20 || weight > 400) return fail("Enter a valid weight between 20 and 400 kg.", 400);
-      for (const [key, min, max] of [["waistCm",20,250],["hipsCm",20,250],["bodyFatPercent",1,75]] as const) {
+      for (const [key, min, max] of [["waistCm", 20, 250], ["hipsCm", 20, 250], ["bodyFatPercent", 1, 75]] as const) {
         if (payload[key] !== null && payload[key] !== undefined && payload[key] !== "") {
           const value = Number(payload[key]);
           if (!Number.isFinite(value) || value < min || value > max) return fail("A body measurement is outside the accepted range.", 400);
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
       const name = str(payload.name, { required: true, label: "Meal name", max: 160 });
       const value = Number(payload.calories);
       if (!name || !Number.isFinite(value) || value < 0 || value > 5000) return fail("Enter a meal name and valid calorie amount.", 400);
-      if (typeof payload.photoDataUrl === "string" && !/^data:image\\/(png|jpeg|webp);base64,/.test(payload.photoDataUrl)) return fail("Unsupported meal photo format.", 400);
+      if (typeof payload.photoDataUrl === "string" && !/^data:image\/(png|jpeg|webp);base64,/.test(payload.photoDataUrl)) return fail("Unsupported meal photo format.", 400);
     }
     if (kind === "aftercare") {
       const score = Number(payload.symptomScore);
@@ -81,7 +83,7 @@ export async function POST(req: NextRequest) {
     }
 
     const result = await pool.query(
-      "INSERT INTO clinic_patient_events (client_id,created_by,kind,payload) VALUES ($1,$2,$3,$4::jsonb) RETURNING id, client_id AS \\"clientId\\", kind, payload, created_at AS \\"createdAt\\"",
+      'INSERT INTO clinic_patient_events (client_id,created_by,kind,payload) VALUES ($1,$2,$3,$4::jsonb) RETURNING id, client_id AS "clientId", kind, payload, created_at AS "createdAt"',
       [clientId, user.id, kind, serialized]
     );
 
