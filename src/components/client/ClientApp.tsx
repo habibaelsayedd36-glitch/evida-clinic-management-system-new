@@ -26,6 +26,7 @@ import { Avatar, Badge, Bar, Button, Card, EmptyState, Progress, SectionHeader, 
 import { Shell, type NavItem } from "@/components/Shell";
 import { AppointmentForm, ProfileForm, useSubmit } from "@/components/forms";
 import { AppointmentRow, DietCard, PlanCard, RecordCard } from "@/components/clinical";
+import { EvidaAssistant } from "@/components/client/EvidaAssistant";
 
 const NAV: NavItem[] = [
   { id: "home", label: "Home", icon: LayoutDashboard },
@@ -660,6 +661,8 @@ export function ClientApp({ initial }: { initial: Bootstrap }) {
           </Card>
         ) : null}
       </Shell>
+
+      <EvidaAssistant />
 
       {apptModal.open ? (
         <AppointmentForm
