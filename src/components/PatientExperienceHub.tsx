@@ -59,6 +59,7 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
   const today = dayKey(new Date().toISOString());
   const todaysMeals = myEvents.filter((event) => event.kind === "meal" && dayKey(event.createdAt) === today);
   const consumed = todaysMeals.reduce((sum, event) => sum + n(event.payload.calories), 0);
+  const macroTotals = todaysMeals.reduce((total, event) => ({ protein: total.protein + n(event.payload.protein), carbs: total.carbs + n(event.payload.carbs), fat: total.fat + n(event.payload.fat) }), { protein: 0, carbs: 0, fat: 0 });
   const activeDiet = data.dietPlans.find((plan) => plan.status === "active");
   const calorieTarget = activeDiet?.dailyCalories ?? null;
   const points = myEvents.filter((event) => event.kind === "challenge").reduce((sum, event) => sum + n(event.payload.points), 0);
@@ -91,6 +92,7 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
   }, [data, events]);
 
   if (mode === "admin") return <div className="space-y-5">
+    {loading ? <p className="text-xs text-ink/40">Loading patient journey data…</p> : null}
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <StatTile label="Journey entries" value={events.length} hint="Body, meals, aftercare and feedback" icon={<Activity className="h-5 w-5" />} />
       <StatTile label="Past no-shows" value={adminStats.noShows} hint="Historical missed appointments" icon={<Activity className="h-5 w-5" />} tone="clay" />
@@ -115,12 +117,14 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
   </div>;
 
   return <div className="space-y-5">
+    {loading ? <p className="text-xs text-ink/40">Loading your progress…</p> : null}
     <Card className="overflow-hidden"><div className="bg-[#29213a] px-5 py-5 text-white sm:px-6"><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#d9cce6]">EVIDA · YOUR DAILY JOURNEY</p><h2 className="mt-2 font-display text-2xl font-semibold">Small steps, meaningful progress.</h2><p className="mt-1 text-xs text-white/60">Track your measurements, meals and follow-up in one place.</p></div>
       <div className="grid gap-3 p-4 sm:grid-cols-3">
         <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">Today's calories</p><p className="num mt-1 text-2xl font-semibold">{consumed.toLocaleString("en-US")} <span className="text-xs text-ink/40">kcal</span></p><p className="text-[10px] text-ink/45">{calorieTarget ? Math.max(0,calorieTarget-consumed)+" kcal remaining · plan target "+calorieTarget : "Your nutritionist has not set a calorie target yet."}</p></div>
         <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">Meals logged today</p><p className="num mt-1 text-2xl font-semibold">{todaysMeals.length}</p></div>
         <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">Challenge points</p><p className="num mt-1 text-2xl font-semibold">{points}</p></div>
       </div>
+      <div className="grid grid-cols-3 gap-2 px-4 pb-4 text-center"><div className="rounded-lg bg-sand-50 p-2"><p className="num text-sm font-semibold">{macroTotals.protein}g</p><p className="text-[10px] text-ink/45">Protein</p></div><div className="rounded-lg bg-sand-50 p-2"><p className="num text-sm font-semibold">{macroTotals.carbs}g</p><p className="text-[10px] text-ink/45">Carbs</p></div><div className="rounded-lg bg-sand-50 p-2"><p className="num text-sm font-semibold">{macroTotals.fat}g</p><p className="text-[10px] text-ink/45">Fat</p></div></div>
     </Card>
     <div className="grid gap-4 xl:grid-cols-2">
       <Card><SectionHeader title="Body transformation tracker" subtitle="Record measurements over time for your care team." icon={<Scale className="h-4 w-4" />} />
@@ -141,7 +145,7 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
           <label className={labelClass}>Protein (g)<input type="number" min="0" max="500" value={protein} onChange={(e)=>setProtein(e.target.value)} className={fieldClass}/></label>
           <label className={labelClass}>Carbs (g)<input type="number" min="0" max="1000" value={carbs} onChange={(e)=>setCarbs(e.target.value)} className={fieldClass}/></label>
           <label className={labelClass}>Fat (g)<input type="number" min="0" max="500" value={fat} onChange={(e)=>setFat(e.target.value)} className={fieldClass}/></label>
-          <label className={labelClass+" sm:col-span-2"}>Meal photo<input type="file" accept="image/*" capture="environment" onChange={(e)=>{const file=e.target.files?.[0];if(!file)return;if(file.size>850*1024){setError("Choose an image smaller than 850 KB.");return;}const reader=new FileReader();reader.onload=()=>setPhoto(String(reader.result||""));reader.readAsDataURL(file);}} className="text-xs"/></label>
+          <label className={labelClass+" sm:col-span-2"}>Meal photo<input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onChange={(e)=>{const file=e.target.files?.[0];if(!file)return;if(file.size>850*1024){setError("Choose an image smaller than 850 KB.");return;}const reader=new FileReader();reader.onload=()=>setPhoto(String(reader.result||""));reader.readAsDataURL(file);}} className="text-xs"/></label>
           {photo?<img src={photo} alt="Meal preview" className="h-28 w-28 rounded-xl object-cover sm:col-span-2"/>:null}
           <p className="text-[10px] leading-4 text-ink/45 sm:col-span-2">Photo recognition is not enabled yet. Calories and portions are entered manually and can be reviewed by your nutritionist.</p>
           <div className="sm:col-span-2 flex justify-end"><Button type="submit" loading={saving} disabled={saving}>Add meal to diary</Button></div>
