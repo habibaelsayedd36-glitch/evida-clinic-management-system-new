@@ -17,6 +17,7 @@ import {
   Pencil,
   Activity,
   Wallet,
+  Sparkles,
 } from "lucide-react";
 import { api, bmi, bmiLabel, currency, fmtDate, fmtRelative, fmtShortDate, isSameDay, useBootstrap } from "@/lib/client";
 import {
@@ -33,6 +34,7 @@ import {
 import { Avatar, Badge, Button, Card, EmptyState, Modal, SearchInput, SectionHeader, StatTile } from "@/components/ui";
 import { Shell, type NavItem } from "@/components/Shell";
 import { AppointmentForm, NotificationForm, useSubmit } from "@/components/forms";
+import { PatientExperienceHub } from "@/components/PatientExperienceHub";
 import {
   AppointmentRow,
   ClientFile,
@@ -54,6 +56,7 @@ const NAV: NavItem[] = [
   { id: "diet", label: "Diet plans", icon: Salad },
   { id: "records", label: "Medical records", icon: Stethoscope },
   { id: "notifications", label: "Notifications", icon: Bell },
+  { id: "journey", label: "Patient Journey", icon: Sparkles },
 ];
 
 const TITLES: Record<string, { title: string; subtitle: string }> = {
@@ -67,6 +70,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   diet: { title: "Diet plans", subtitle: "Plans and meals for your clients" },
   records: { title: "Medical records", subtitle: "Diagnosis and measurements per visit" },
   notifications: { title: "Notifications", subtitle: "Your inbox plus sending messages to your clients" },
+  journey: { title: "Patient Journey & Care Signals", subtitle: "Review aftercare, patient feedback, no-show risk and missed follow-up opportunities" },
 };
 
 type PendingForm = { kind: "record" | "plan" | "dose" | "diet" } | null;
@@ -543,6 +547,8 @@ export function DoctorApp({ initial }: { initial: Bootstrap }) {
             ) : null}
           </div>
         ) : null}
+
+        {view === "journey" ? <PatientExperienceHub data={data} mode="admin" /> : null}
 
         {view === "notifications" ? (
           <div className="grid gap-4 lg:grid-cols-2">
