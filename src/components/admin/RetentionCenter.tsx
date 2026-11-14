@@ -7,7 +7,7 @@ import { Avatar, Badge, Button, Card, EmptyState, SectionHeader, StatTile } from
 import { fmtDate } from "@/lib/client";
 
 function phoneForWhatsApp(phone: string) {
-  let digits = phone.replace(/\\D/g, "");
+  let digits = phone.replace(/\D/g, "");
   if (digits.startsWith("00")) digits = digits.slice(2);
   if (digits.startsWith("0")) digits = "20" + digits.slice(1);
   return digits;
