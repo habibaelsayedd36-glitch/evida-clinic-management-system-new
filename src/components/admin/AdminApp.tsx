@@ -23,6 +23,7 @@ import {
   TrendingUp,
   Sparkles,
   HeartHandshake,
+  ListChecks,
 } from "lucide-react";
 import { api, bmi, bmiLabel, currency, fmtDate, fmtRelative, fmtShortDate, groupBy, isSameDay } from "@/lib/client";
 import {
@@ -41,6 +42,7 @@ import { useBootstrap } from "@/lib/client";
 import { OffersManager } from "@/components/admin/OffersManager";
 import { BillingManager } from "@/components/admin/BillingManager";
 import { RetentionCenter } from "@/components/admin/RetentionCenter";
+import { WaitlistManager } from "@/components/admin/WaitlistManager";
 
 const NAV: NavItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -52,6 +54,7 @@ const NAV: NavItem[] = [
   { id: "plans", label: "Plans", icon: ClipboardList },
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "retention", label: "Follow-up & Programs", icon: HeartHandshake },
+  { id: "waitlist", label: "Waiting List", icon: ListChecks },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "offers", label: "Services & Offers", icon: Tags },
 ];
@@ -66,6 +69,7 @@ const TITLES: Record<string, { title: string; subtitle: string }> = {
   plans: { title: "Treatment & diet plans", subtitle: "Follow every client's plans and session completion" },
   reports: { title: "Reports", subtitle: "Clinic performance in numbers — appointments, revenue and client adherence" },
   retention: { title: "Client Follow-up & Programs", subtitle: "Find clients due for a check-in and keep treatment programmes on track" },
+  waitlist: { title: "Appointment Waiting List", subtitle: "Manage clients waiting for an earlier or currently unavailable appointment" },
   notifications: { title: "Notifications", subtitle: "Send alerts to one client, all clients or all doctors" },
   offers: { title: "Services & Offers", subtitle: "Manage clinic services, full protocol details, EGP prices and offer deadlines" },
 };
@@ -933,6 +937,8 @@ export function AdminApp({ initial }: { initial: Bootstrap }) {
         {view === "offers" ? <OffersManager /> : null}
 
         {view === "retention" ? <RetentionCenter data={data} onOpenClient={setFileClient} /> : null}
+
+        {view === "waitlist" ? <WaitlistManager /> : null}
 
         {view === "notifications" ? (
           <div className="grid gap-4 lg:grid-cols-2">
