@@ -162,6 +162,21 @@ export const invoicePayments = pgTable(
   (t) => [index("invoice_payments_invoice_idx").on(t.invoiceId)],
 );
 
+export const rewardLedger = pgTable(
+  "reward_ledger",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    clientId: uuid("client_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    invoiceId: uuid("invoice_id").notNull().unique().references(() => invoices.id, { onDelete: "cascade" }),
+    points: integer("points").notNull(),
+    eligibleAmount: integer("eligible_amount").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    issuedBy: uuid("issued_by").references(() => profiles.id, { onDelete: "set null" }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("reward_ledger_client_idx").on(t.clientId), index("reward_ledger_expiry_idx").on(t.expiresAt)],
+);
+
 export const treatmentPlans = pgTable(
   "treatment_plans",
   {
