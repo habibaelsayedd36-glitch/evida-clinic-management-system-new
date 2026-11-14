@@ -185,6 +185,18 @@ CREATE TABLE IF NOT EXISTS "paymob_payment_attempts" (
   "paid_at" timestamp with time zone
 );
 CREATE INDEX IF NOT EXISTS "paymob_payment_attempts_invoice_idx" ON "paymob_payment_attempts" ("invoice_id");
+CREATE TABLE IF NOT EXISTS "reward_ledger" (
+  "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+  "client_id" uuid NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
+  "invoice_id" uuid NOT NULL UNIQUE REFERENCES "invoices"("id") ON DELETE CASCADE,
+  "points" integer NOT NULL,
+  "eligible_amount" integer NOT NULL,
+  "expires_at" timestamp with time zone NOT NULL,
+  "issued_by" uuid REFERENCES "profiles"("id") ON DELETE SET NULL,
+  "created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+CREATE INDEX IF NOT EXISTS "reward_ledger_client_idx" ON "reward_ledger" ("client_id");
+CREATE INDEX IF NOT EXISTS "reward_ledger_expiry_idx" ON "reward_ledger" ("expires_at");
 CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
   "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
   "profile_id" uuid NOT NULL REFERENCES "profiles"("id") ON DELETE CASCADE,
