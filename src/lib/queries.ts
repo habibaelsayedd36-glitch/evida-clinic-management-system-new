@@ -176,6 +176,7 @@ export async function loadScopedData(user: ProfileDTO): Promise<Bootstrap> {
       clientName: clientP.fullName,
       doctorName: doctorP.fullName,
       appointmentKind: appointments.kind,
+      appointmentStatus: appointments.status,
     })
     .from(invoices)
     .leftJoin(clientP, eq(clientP.id, invoices.clientId))
