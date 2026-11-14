@@ -39,6 +39,8 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
   const [feedbackCategory, setFeedbackCategory] = useState("Overall experience");
   const [rating, setRating] = useState("5");
   const [feedback, setFeedback] = useState("");
+  const [activityLevel, setActivityLevel] = useState("moderate");
+  const [goalMode, setGoalMode] = useState("maintain");
 
   async function load() {
     setLoading(true);
@@ -62,6 +64,11 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
   const macroTotals = todaysMeals.reduce((total, event) => ({ protein: total.protein + n(event.payload.protein), carbs: total.carbs + n(event.payload.carbs), fat: total.fat + n(event.payload.fat) }), { protein: 0, carbs: 0, fat: 0 });
   const activeDiet = data.dietPlans.find((plan) => plan.status === "active");
   const calorieTarget = activeDiet?.dailyCalories ?? null;
+  const age = data.me.birthDate ? (() => { const born = new Date(data.me.birthDate as string); const now = new Date(); let years = now.getFullYear() - born.getFullYear(); if (now.getMonth() < born.getMonth() || (now.getMonth() === born.getMonth() && now.getDate() < born.getDate())) years--; return years; })() : null;
+  const sexOffset = data.me.gender === "male" ? 5 : data.me.gender === "female" ? -161 : null;
+  const activityFactor: Record<string, number> = { sedentary: 1.2, light: 1.375, moderate: 1.55, high: 1.725 };
+  const bmr = age !== null && age >= 18 && data.me.heightCm && data.me.weightKg && sexOffset !== null ? 10 * data.me.weightKg + 6.25 * data.me.heightCm - 5 * age + sexOffset : null;
+  const estimatedCalories = bmr === null ? null : Math.max(1200, Math.round(bmr * activityFactor[activityLevel] + (goalMode === "lose" ? -300 : goalMode === "gain" ? 250 : 0)));
   const points = myEvents.filter((event) => event.kind === "challenge").reduce((sum, event) => sum + n(event.payload.points), 0);
   const bodyEntries = myEvents.filter((event) => event.kind === "body_measurement");
   const aftercareEntries = myEvents.filter((event) => event.kind === "aftercare");
@@ -120,11 +127,20 @@ export function PatientExperienceHub({ data, mode }: { data: Bootstrap; mode: "a
     {loading ? <p className="text-xs text-ink/40">Loading your progress…</p> : null}
     <Card className="overflow-hidden"><div className="bg-[#29213a] px-5 py-5 text-white sm:px-6"><p className="text-[10px] font-semibold uppercase tracking-[.2em] text-[#d9cce6]">EVIDA · YOUR DAILY JOURNEY</p><h2 className="mt-2 font-display text-2xl font-semibold">Small steps, meaningful progress.</h2><p className="mt-1 text-xs text-white/60">Track your measurements, meals and follow-up in one place.</p></div>
       <div className="grid gap-3 p-4 sm:grid-cols-3">
-        <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">Today's calories</p><p className="num mt-1 text-2xl font-semibold">{consumed.toLocaleString("en-US")} <span className="text-xs text-ink/40">kcal</span></p><p className="text-[10px] text-ink/45">{calorieTarget ? Math.max(0,calorieTarget-consumed)+" kcal remaining · plan target "+calorieTarget : "Your nutritionist has not set a calorie target yet."}</p></div>
+        <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">Today's calories</p><p className="num mt-1 text-2xl font-semibold">{consumed.toLocaleString("en-US")} <span className="text-xs text-ink/40">kcal</span></p><p className="text-[10px] text-ink/45">{(calorieTarget ?? estimatedCalories) ? Math.max(0,(calorieTarget ?? estimatedCalories ?? 0)-consumed)+" kcal remaining · "+(calorieTarget ? "clinician plan" : "estimated target") : "Add your height, weight, birth date and gender to estimate a target."}</p></div>
         <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">Meals logged today</p><p className="num mt-1 text-2xl font-semibold">{todaysMeals.length}</p></div>
         <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">Challenge points</p><p className="num mt-1 text-2xl font-semibold">{points}</p></div>
       </div>
       <div className="grid grid-cols-3 gap-2 px-4 pb-4 text-center"><div className="rounded-lg bg-sand-50 p-2"><p className="num text-sm font-semibold">{macroTotals.protein}g</p><p className="text-[10px] text-ink/45">Protein</p></div><div className="rounded-lg bg-sand-50 p-2"><p className="num text-sm font-semibold">{macroTotals.carbs}g</p><p className="text-[10px] text-ink/45">Carbs</p></div><div className="rounded-lg bg-sand-50 p-2"><p className="num text-sm font-semibold">{macroTotals.fat}g</p><p className="text-[10px] text-ink/45">Fat</p></div></div>
+    </Card>
+    <Card>
+      <SectionHeader title="Daily calorie needs" subtitle="An estimate based on your profile. Your nutritionist's assigned plan takes priority." icon={<Flame className="h-4 w-4" />} />
+      <div className="grid gap-3 px-5 pb-5 sm:grid-cols-3">
+        <label className={labelClass}>Activity level<select value={activityLevel} onChange={(e)=>setActivityLevel(e.target.value)} className={fieldClass}><option value="sedentary">Mostly sitting</option><option value="light">Light activity</option><option value="moderate">Moderate activity</option><option value="high">High activity</option></select></label>
+        <label className={labelClass}>Goal<select value={goalMode} onChange={(e)=>setGoalMode(e.target.value)} className={fieldClass}><option value="maintain">Maintain weight</option><option value="lose">Weight loss</option><option value="gain">Weight gain</option></select></label>
+        <div className="rounded-xl bg-sand-50 p-3"><p className="text-[10px] text-ink/50">{calorieTarget ? "Assigned daily target" : "Estimated daily target"}</p><p className="num mt-1 text-2xl font-semibold">{calorieTarget ?? estimatedCalories ?? "—"} <span className="text-xs text-ink/40">kcal</span></p><p className="text-[10px] text-ink/45">{calorieTarget ? "Set by your nutritionist" : "Needs clinician review"}</p></div>
+      </div>
+      {!calorieTarget && estimatedCalories ? <p className="px-5 pb-4 text-[10px] leading-4 text-ink/45">Estimate uses the Mifflin–St Jeor equation and your selected activity and goal. It is a starting estimate only, not a prescription; your nutritionist should confirm an appropriate target.</p> : null}
     </Card>
     <div className="grid gap-4 xl:grid-cols-2">
       <Card><SectionHeader title="Body transformation tracker" subtitle="Record measurements over time for your care team." icon={<Scale className="h-4 w-4" />} />
