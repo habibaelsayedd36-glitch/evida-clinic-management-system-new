@@ -52,7 +52,7 @@ export function WaitlistManager() {
   }
 
   const waiting = entries.filter((entry) => entry.status === "waiting").length;
-  const phoneDigits = (value: string) => { let digits = value.replace(/\\D/g, ""); if (digits.startsWith("0")) digits = "20" + digits.slice(1); return digits; };
+  const phoneDigits = (value: string) => { let digits = value.replace(/\D/g, ""); if (digits.startsWith("0")) digits = "20" + digits.slice(1); return digits; };
 
   return <div className="space-y-5">
     <div className="grid gap-3 sm:grid-cols-3">
